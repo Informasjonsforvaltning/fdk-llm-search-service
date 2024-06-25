@@ -1,0 +1,18 @@
+{
+    "name": "EventEvent",
+    "namespace": "no.fdk.event",
+    "type": "record",
+    "fields": [
+        {
+            "name": "type",
+            "type": {
+                "type": "enum",
+                "name": "EventEventType",
+                "symbols": ["EVENT_HARVESTED", "EVENT_REASONED", "EVENT_REMOVED"]
+            }
+        },
+        {"name": "fdkId", "type": "string"},
+        {"name": "graph", "type": "string"},
+        {"name": "timestamp", "type": "long"}
+    ]
+}

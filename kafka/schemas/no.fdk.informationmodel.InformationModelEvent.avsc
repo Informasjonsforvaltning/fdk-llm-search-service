@@ -1,0 +1,18 @@
+{
+    "name": "InformationModelEvent",
+    "namespace": "no.fdk.informationmodel",
+    "type": "record",
+    "fields": [
+        {
+            "name": "type",
+            "type": {
+                "type": "enum",
+                "name": "InformationModelEventType",
+                "symbols": ["INFORMATION_MODEL_HARVESTED", "INFORMATION_MODEL_REASONED", "INFORMATION_MODEL_REMOVED"]
+            }
+        },
+        {"name": "fdkId", "type": "string"},
+        {"name": "graph", "type": "string"},
+        {"name": "timestamp", "type": "long"}
+    ]
+}

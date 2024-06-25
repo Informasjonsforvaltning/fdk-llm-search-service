@@ -1,0 +1,18 @@
+{
+    "name": "DataServiceEvent",
+    "namespace": "no.fdk.dataservice",
+    "type": "record",
+    "fields": [
+        {
+            "name": "type",
+            "type": {
+                "type": "enum",
+                "name": "DataServiceEventType",
+                "symbols": ["DATA_SERVICE_HARVESTED", "DATA_SERVICE_REASONED", "DATA_SERVICE_REMOVED"]
+            }
+        },
+        {"name": "fdkId", "type": "string"},
+        {"name": "graph", "type": "string"},
+        {"name": "timestamp", "type": "long"}
+    ]
+}

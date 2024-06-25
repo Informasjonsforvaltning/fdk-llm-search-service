@@ -1,0 +1,18 @@
+{
+    "name": "RdfParseEvent",
+    "namespace": "no.fdk.rdf.parse",
+    "type": "record",
+    "fields": [
+        {
+            "name": "resourceType",
+            "type": {
+                "type": "enum",
+                "name": "RdfParseResourceType",
+                "symbols": ["DATASET", "DATA_SERVICE", "CONCEPT", "INFORMATION_MODEL", "SERVICE", "EVENT"]
+            }
+        },
+        {"name": "fdkId", "type": "string"},
+        {"name": "data", "type": "string"},
+        {"name": "timestamp", "type": "long"}
+    ]
+}

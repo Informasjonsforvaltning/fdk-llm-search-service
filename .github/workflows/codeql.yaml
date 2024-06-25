@@ -1,0 +1,22 @@
+name: Code scanning (CodeQL)
+
+on:
+  pull_request:
+    types: [ready_for_review, opened, reopened, synchronize]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  codeql:
+    name: Run codeql scan
+    if: github.event.pull_request.draft == false
+    uses: Informasjonsforvaltning/workflows/.github/workflows/codeql.yaml@main
+    with:
+      language: java
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

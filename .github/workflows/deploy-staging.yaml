@@ -1,0 +1,35 @@
+name: Deploy to staging
+
+on:
+  pull_request:
+    types: [ready_for_review, opened, reopened, synchronize]
+    branches:
+      - main
+
+jobs:
+  build-fdk-llm-search-service:
+    name: Build when pull request is created
+    if: github.event.pull_request.draft == false
+    uses: Informasjonsforvaltning/workflows/.github/workflows/build-push.yaml@main
+    with:
+      app_name: fdk-llm-search-service
+      environment: staging
+      java_version: '21'
+      coverage_file_path: ./target/site/jacoco/jacoco.xml
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GCP_SA_DIGDIR_FDK_GCR_KEY: ${{ secrets.GCP_SA_DIGDIR_FDK_GCR_KEY }}
+
+  deploy:
+    name: Deploy to staging environment
+    if: ${{ github.actor != 'dependabot[bot]' &&  github.event.pull_request.draft == false }}
+    needs: [ build-fdk-llm-search-service ]
+    uses: Informasjonsforvaltning/workflows/.github/workflows/kustomize-deploy.yaml@main
+    with:
+      app_name: fdk-llm-search-service
+      environment: staging
+      cluster: digdir-fdk-dev
+    secrets:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DIGDIR_FDK_AUTODEPLOY: ${{ secrets.DIGDIR_FDK_DEV_AUTODEPLOY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
