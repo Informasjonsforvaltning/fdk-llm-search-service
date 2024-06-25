@@ -1,0 +1,100 @@
+---
+version: '3.8'
+services:
+#  fdk-llm-search-service:
+#    image: eu.gcr.io/digdir-fdk-infra/fdk-llm-search-service:test
+#    build: .
+#    environment:
+#      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+#      - KAFKA_SCHEMA_REGISTRY=http://schema-registry:8081
+#      - CORS_ORIGIN_PATTERNS=*
+#      - LOG_LEVEL=DEBUG
+#    ports:
+#      - '8080:8080'
+#    depends_on:
+#      - postgres
+#      - schema-registry
+  zookeeper:
+    image: confluentinc/cp-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: -Dzookeeper.4lw.commands.whitelist=ruok
+    healthcheck:
+      test: echo 'ruok' | nc -w 2 localhost 2181 | grep imok
+      interval: 3s
+
+  # https://developer.confluent.io/quickstart/kafka-docker
+  kafka:
+    image: confluentinc/cp-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+    volumes:
+      - ./kafka:/kafka
+    # Creates custom topics and starts kafka process (in parallel).
+    command:
+      - sh
+      - -c
+      - (sh /kafka/create_topics.sh) & /etc/confluent/docker/run
+    # Ready when custom topics are created.
+    healthcheck:
+      test: /bin/kafka-topics --bootstrap-server 127.0.0.1:9092 --list
+      interval: 3s
+      retries: 100
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry
+    ports:
+      - "8081:8081"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: localhost
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:29092
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081" ]
+      interval: 3s
+      retries: 10
+
+  # Registers schemas once schema-registry is up.
+  schema-registrer:
+    image: dwdraju/alpine-curl-jq
+    volumes:
+      - ./kafka:/kafka
+    command: sh /kafka/create_schemas.sh
+    environment:
+      - SCHEMA_REGISTRY_URL=http://schema-registry:8081
+    depends_on:
+      schema-registry:
+        condition: service_healthy
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./postgres/Dockerfile
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=S3cret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=llm-search

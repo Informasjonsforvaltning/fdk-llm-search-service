@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fdk-llm-search-service
+  labels:
+    app: fdk-llm-search-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fdk-llm-search-service
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: fdk-llm-search-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/prometheus"
+    spec:
+      containers:
+        - name: fdk-llm-search-service
+          image: fdk-llm-search-service
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            requests:
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /var/secrets/google
+              name: vertex-sa
+      volumes:
+        - name: vertex-sa
+          secret:
+            defaultMode: 420
+            secretName: vertex-ai-sa-key

@@ -1,0 +1,31 @@
+{
+    "name": "DatasetEvent",
+    "namespace": "no.fdk.dataset",
+    "type": "record",
+    "fields": [
+        {
+            "name": "type",
+            "type": {
+                "type": "enum",
+                "name": "DatasetEventType",
+                "symbols": [
+                    "DATASET_HARVESTED",
+                    "DATASET_REASONED",
+                    "DATASET_REMOVED"
+                ]
+            }
+        },
+        {
+            "name": "fdkId",
+            "type": "string"
+        },
+        {
+            "name": "graph",
+            "type": "string"
+        },
+        {
+            "name": "timestamp",
+            "type": "long"
+        }
+    ]
+}
