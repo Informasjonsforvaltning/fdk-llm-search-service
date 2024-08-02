@@ -23,7 +23,7 @@ open class SecurityConfig(
                     config.allowedHeaders = listOf("*")
                     config.maxAge = 3600L
                     config.allowedOriginPatterns = corsOriginPatterns.toList()
-                    config.allowedMethods = listOf("POST", "OPTIONS")
+                    config.allowedMethods = listOf("GET", "POST", "OPTIONS")
                     config
                 }
             }
