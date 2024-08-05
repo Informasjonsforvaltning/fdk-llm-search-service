@@ -12,10 +12,10 @@ open class SearchQueryRepository(
     /**
      * Save search query to database
      */
-    open fun saveSearchQuery(query: String, nrOfHitsEmbedding: Int, nrOfHitsLlm: Int) {
+    open fun saveSearchQuery(query: String, nrOfHitsEmbedding: Int, nrOfHitsLlm: Int, sensitive: Boolean) {
         jdbcTemplate.update(
-            "INSERT INTO search_queries (query, hits_embedding, hits_llm) VALUES (:query, :hits_embedding, :hits_llm)",
-            mapOf("query" to query, "hits_embedding" to nrOfHitsEmbedding, "hits_llm" to nrOfHitsLlm)
+            "INSERT INTO search_queries (query, hits_embedding, hits_llm, sensitive) VALUES (:query, :hits_embedding, :hits_llm, :sensitive)",
+            mapOf("query" to query, "hits_embedding" to nrOfHitsEmbedding, "hits_llm" to nrOfHitsLlm, "sensitive" to sensitive)
         )
     }
 }

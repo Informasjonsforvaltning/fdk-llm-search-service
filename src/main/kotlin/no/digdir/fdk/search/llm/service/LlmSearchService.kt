@@ -37,10 +37,11 @@ class LlmSearchService(
         ))
 
         logger.debug("AI Response: {}", response)
+        val sensitive = response.trim().startsWith("Spørsmålet inneholder muligens personopplysninger")
         val result = parseAiResponse(response, embeddings)
 
         // Save search query
-        searchQueryRepository.saveSearchQuery(query, embeddings.size, result.hits.size)
+        searchQueryRepository.saveSearchQuery(query, embeddings.size, result.hits.size, sensitive)
 
         return result
     }
@@ -89,13 +90,15 @@ class LlmSearchService(
             Select all datasets that are relevant to answer the question.
             Prioritize datasets with newer data.
             Using those dataset summaries, answer the following
-            question in as much detail as possible.
+            question in as much detail as possible. 
             Give your answer in Norwegian.
             You should only use the information in the summaries.
-            Your answer should include the dataset title and why each dataset match the question posed by the user.
+            Your answer should start with explaining if the question contains possible personal sensitive data and 
+            include the dataset title and why each dataset match the question posed by the user.
             If no datasets are given, explain that the data may not exist.
             Give the answer in Markdown and mark the dataset title as bold text and place the id within brackets behind the title.
             Add '---' before each title on a separate line.
+                        
                                 
             Summaries:
             ```{{summaries}}```

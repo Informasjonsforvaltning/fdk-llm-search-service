@@ -35,7 +35,7 @@ class LlmSearchServiceTest {
             Dette datasettet inneholder informasjon om alle registreringspliktige kjøretøy i Norge og dets eiere. Datasettet oppdateres med ukjent frekvens, men inneholder data fra mars 2017. Det er derfor sannsynlig at datasettet inneholder informasjon om Tesla-biler.
         """.trimIndent()
 
-        every { searchQueryRepository.saveSearchQuery("Tesla", any(), any()) } returns Unit
+        every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit
         every { vertexService.llmPrompt(any()) } returns aiResponse
         every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 7 ) } returns listOf(
             TextEmbedding("12345", "content", false, 1612137600000,mapOf(
@@ -66,7 +66,7 @@ class LlmSearchServiceTest {
         assertEquals("1234", result.hits[0].publisherId)
 
         verify {
-            searchQueryRepository.saveSearchQuery("Tesla", 3, 3)
+            searchQueryRepository.saveSearchQuery("Tesla", 3, 3, false)
         }
     }
 
@@ -76,7 +76,7 @@ class LlmSearchServiceTest {
             **Ingen av datasettene inneholder data som kan brukes til å svare på spørsmålet.**
         """.trimIndent()
 
-        every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any()) } returns Unit
+        every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
         every { vertexService.llmPrompt(any()) } returns aiResponse
         every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 7 ) } returns emptyList()
 
@@ -84,7 +84,7 @@ class LlmSearchServiceTest {
         assertEquals(0, result.hits.size)
 
         verify {
-            searchQueryRepository.saveSearchQuery("Noe som ikke finnes", 0, 0)
+            searchQueryRepository.saveSearchQuery("Noe som ikke finnes", 0, 0, false)
         }
     }
 
@@ -94,7 +94,7 @@ class LlmSearchServiceTest {
             **Ingen av datasettene inneholder data som kan brukes til å svare på spørsmålet.**
         """.trimIndent()
 
-        every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any()) } returns Unit
+        every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
         every { vertexService.llmPrompt(any()) } returns aiResponse
         every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 7 ) } returns listOf(
             TextEmbedding("12345", "content", false, 1612137600000, mapOf(
@@ -118,7 +118,7 @@ class LlmSearchServiceTest {
         assertEquals(0, result.hits.size)
 
         verify {
-            searchQueryRepository.saveSearchQuery("Noe som ikke finnes", 3, 0)
+            searchQueryRepository.saveSearchQuery("Noe som ikke finnes", 3, 0, false)
         }
     }
 }
