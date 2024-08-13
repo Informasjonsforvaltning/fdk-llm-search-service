@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fdk-llm-search-service
+  annotations:
+    nginx.ingress.kubernetes.io/limit-rpm: '10'
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: '2'
+    nginx.ingress.kubernetes.io/limit-whitelist: '10.0.0.0/8'
+    nginx.ingress.kubernetes.io/server-snippet: |
+      server_tokens off;
+      location ~ ^/(ping|ready|prometheus) {
+        deny all;
+        return 404;
+      }
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: aisearch.api.fellesdatakatalog.digdir.no
+      http:
+        paths:
+          - backend:
+              service:
+                name: fdk-llm-search-service
+                port:
+                  number: 8080
+            path: /
+            pathType: Prefix
