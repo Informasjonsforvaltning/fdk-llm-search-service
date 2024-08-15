@@ -1,8 +1,8 @@
 # FDK LLM Search Service
 FDK LLM Search Service er en service som bruker 'Large Language Model' (LLM) som bygger på 
 metadata fra [data.norge](https://data.norge.no) og tillater kontekstuelle
-fritekstsøk for å forenkle prosessen med å finne datasett lastet opp på
-data.norge.
+fritekstsøk for å forenkle prosessen med å finne datasett beskrevet på
+data.norge.no.
 
 ## Requirements
 
@@ -86,9 +86,9 @@ spørringen mot postgres tar en brøkdel av et sekund.
 Tjenesten lytter på rdf-parse-events (Kafka) og oppdaterer embeddings i 
 postgres-databasen. Vi bruker `pgvector` til å gjøre søk. 
 
-Pgvector bruker text-embeddings til å sammenlikne datasettene. Dette betyr at
-vi må ha datasettene på et rent tekstlig format. For å oppnå dette lager vi
-en tekstlig oppsummering av hvert enkelt dataset som vi deretter
+Pgvector bruker text-embeddings til å sammenlikne datasettbeskrivelsene. Dette betyr at
+vi må ha datasettbeskrivelsene på et rent tekstlig format. For å oppnå dette lager vi
+en tekstlig oppsummering av hver enkelt beskrivelse som vi deretter
 vektoriserer ved hjelp av Vertex. Nedenfor finner du et eksempel av hvordan
 en slik oppsummering ser ut.
 
@@ -107,8 +107,8 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
 ```
 
 ### Dokumentgjennfinning
-I første steget av prosessen finner vi potensielt relevante dataset ut ifra
-søket. Vi bruker Text Embedding i Vertex til å vektorisere søket, og kjører
+I første steg av prosessen finner vi potensielt relevante datasettbeskrivelser
+ut ifra søket. Vi bruker Text Embedding i Vertex til å vektorisere søket, og kjører
 et likhetssøk mot vektorene i databasen.
 
 ```postgresql
@@ -120,23 +120,23 @@ et likhetssøk mot vektorene i databasen.
  LIMIT $3
 ```
 
-I tillegg til vektoren av søksteksten bruker vi to ekstra variabler for å
-kontrollere likhetsterskel og maks antall returnerte datasett. Antallet
-datasett returnert i dette steget har stor innvirkning i oppfattet
-nøyaktighet på brukersiden. Vi vil gjerne ha så mange datasett som mulig, 
-men for mange kan gjøre neste steg en del tregere. I tillegg er det en
+I tillegg til vektoren av søketeksten bruker vi to ekstra variabler for å
+kontrollere likhetsterskel og maks antall returnerte datasettbeskrivelser.
+Antallet returnert i dette steget har stor innvirkning på oppfattet nøyaktighet
+på brukersiden. Vi vil gjerne ha så mange datasettbeskrivelser som mulig, men
+blir det for mange kan det gjøre neste steg en del tregere. I tillegg er det en
 hard grense på hvor mange vi kan ta siden Vertex har en grense på størrelse
-av context. Vi har landet på maks 7 datasett i vårt use-case, men dette kan
-endre seg i fremtiden. Vi lagrer metadata som jsonb i tillegg til vektoren 
+av context. Vi har landet på maks 7 datasettbeskrivelser i vårt use-case, men
+dette kan endre seg i fremtiden. Vi lagrer metadata som jsonb i tillegg til vektoren
 for å kunne filtrere bort irrelevante embeddings eller hente ut informasjon
 som tittel og utgiver.
 
 
 ### LLM filtrering og validering
 Siste steg av prosessen bruker Vertex sin LLM til å filtrere bort
-irrelevante dataset fra forrige steg og besvare forespørselen fra brukeren.
+irrelevante datasettbeskrivelser fra forrige steg og besvare forespørselen fra brukeren.
 Her bruker vi LangChain til å opprette en prompt som tar inn 
-tekstlige oppsummeringer av datasettene gir instruksjoner om hvordan
+tekstlige oppsummeringer av datasettbeskrivelser og gir instruksjoner om hvordan
 forespørselen skal behandles. En typisk spørring mot Vertex vil se ut
 som beskrevet under:
 
@@ -174,9 +174,9 @@ data til klienten.
 
 ### Forbedringer
 For å øke nøyaktigheten i søket har vi forsøkt å bruke LLMen til å generere
-relevante ekstra nøkkelord som så brukes til å utvide søket i PostgreSQL.
-Resultatet av dette har vært bedre resultater på mindre detaljerte
-forespørsler på bekostning av cirka 1 sekund ekstra behandlingstid. Dette er
+relevante, ekstra nøkkelord som så brukes til å utvide søket i PostgreSQL.
+Resultatet av dette har vært bedre på mindre detaljerte forespørsler, på
+bekostning av cirka 1 sekund ekstra behandlingstid. Dette er
 ikke aktivert per i dag.
 
 ### Lagring av brukerdata
