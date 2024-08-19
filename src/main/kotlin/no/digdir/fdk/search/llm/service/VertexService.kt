@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service
 class VertexService(
     private val aiProperties: AiProperties
 ) {
+    private val maxInputTokensForEmbedding = 2048
+
     private val vertexAiLlm: VertexAiLanguageModel = VertexAiLanguageModel.builder()
         .endpoint(aiProperties.vertex?.endpoint)
         .project(aiProperties.vertex?.project)
@@ -19,6 +21,8 @@ class VertexService(
         .modelName(aiProperties.vertex?.llmModelName)
         .maxOutputTokens(aiProperties.vertex?.maxOutputTokens)
         .topK(aiProperties.vertex?.topK)
+        .topP(aiProperties.vertex?.topP)
+        .temperature(aiProperties.vertex?.temperature)
         .build()
 
     private val embeddingModel: VertexAiEmbeddingModel = VertexAiEmbeddingModel.builder()
@@ -30,10 +34,10 @@ class VertexService(
         .build()
 
     /**
-     * Embed text
+     * Embed text and limit input tokens
      */
     fun embed(text: String?): Embedding {
-        return embeddingModel.embed(text).content()
+        return embeddingModel.embed(text?.take(maxInputTokensForEmbedding)).content()
     }
 
     /**
