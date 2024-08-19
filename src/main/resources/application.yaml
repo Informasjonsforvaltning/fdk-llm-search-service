@@ -69,8 +69,10 @@ ai:
     location: ${AI_VERTEX_LOCATION}
     llmModelName: ${AI_VERTEX_LLM_MODEL_NAME:text-bison@002}
     embeddingModelName: ${AI_VERTEX_EMBEDDING_MODEL_NAME:text-multilingual-embedding-002}
-    maxOutputTokens: ${AI_VERTEX_MAX_OUTPUT_TOKENS:2000}
+    maxOutputTokens: ${AI_VERTEX_MAX_OUTPUT_TOKENS:2048}
     topK: ${AI_VERTEX_TOP_K:1}
+    topP: ${AI_VERTEX_TOP_P:0.95}
+    temperature: ${AI_VERTEX_TEMPERATURE:0.0}
 application:
   prop: 1
   cors:
