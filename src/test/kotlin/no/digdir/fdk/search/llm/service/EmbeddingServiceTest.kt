@@ -4,9 +4,9 @@ import dev.langchain4j.data.embedding.Embedding
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import no.digdir.fdk.search.llm.model.*
+import no.digdir.fdk.search.llm.model.SearchType
+import no.digdir.fdk.search.llm.model.TextEmbedding
 import no.digdir.fdk.search.llm.repository.EmbeddingRepository
-import no.digdir.fdk.search.llm.repository.SearchQueryRepository
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import kotlin.test.assertEquals
