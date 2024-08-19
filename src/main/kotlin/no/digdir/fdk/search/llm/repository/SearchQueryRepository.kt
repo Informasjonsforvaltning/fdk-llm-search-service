@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Transactional
 open class SearchQueryRepository(
-    val jdbcTemplate: NamedParameterJdbcTemplate
+    private val jdbcTemplate: NamedParameterJdbcTemplate
 ) {
     /**
      * Save search query to database
