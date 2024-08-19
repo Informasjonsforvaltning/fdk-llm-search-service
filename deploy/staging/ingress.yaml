@@ -4,9 +4,9 @@ kind: Ingress
 metadata:
   name: fdk-llm-search-service
   annotations:
-    nginx.ingress.kubernetes.io/limit-rpm: '10'
-    nginx.ingress.kubernetes.io/limit-burst-multiplier: '2'
-    nginx.ingress.kubernetes.io/limit-whitelist: '10.0.0.0/8'
+#    nginx.ingress.kubernetes.io/limit-rpm: '10'
+#    nginx.ingress.kubernetes.io/limit-burst-multiplier: '2'
+#    nginx.ingress.kubernetes.io/limit-whitelist: '10.0.0.0/8'
     nginx.ingress.kubernetes.io/server-snippet: |
       server_tokens off;
       location ~ ^/(ping|ready|prometheus) {
