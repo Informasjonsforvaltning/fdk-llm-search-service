@@ -41,7 +41,7 @@
         <maven.compiler.target>${java.release}</maven.compiler.target>
         <maven.exec.skip>false</maven.exec.skip>
 
-        <kotlin.version>2.0.0</kotlin.version>
+        <kotlin.version>2.0.10</kotlin.version>
         <testcontainers.version>1.19.8</testcontainers.version>
         <avro.version>1.11.3</avro.version>
     </properties>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.6.1</version>
+            <version>7.7.0</version>
         </dependency>
 
         <dependency>
@@ -125,7 +125,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.4</version>
+            <version>8.0</version>
         </dependency>
 
         <!-- Kotlin dependencies -->
@@ -201,7 +201,7 @@
         <dependency>
             <groupId>io.mockk</groupId>
             <artifactId>mockk-jvm</artifactId>
-            <version>1.13.11</version>
+            <version>1.13.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -330,7 +330,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.3.1</version>
                 <configuration>
                     <!--suppress UnresolvedMavenProperty -->
                     <argLine>${failsafe.jacoco.args}</argLine>
@@ -345,7 +345,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.3.1</version>
                 <configuration>
                     <useSystemClassLoader>false</useSystemClassLoader>
                     <!--suppress UnresolvedMavenProperty -->
