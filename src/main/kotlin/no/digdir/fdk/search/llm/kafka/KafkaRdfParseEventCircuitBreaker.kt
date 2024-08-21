@@ -44,7 +44,7 @@ open class KafkaRdfParseEventCircuitBreaker(
             Metrics.timer("store_embedding", "type", event.resourceType.name.lowercase())
                 .record(timeElapsed.duration.toJavaDuration())
         } catch (e: Exception) {
-            logger.error("Error processing message: " + e.message)
+            logger.error("Error processing message", e)
             Metrics.counter(
                 "store_embedding_error",
                 "type", event.resourceType.name.lowercase()
