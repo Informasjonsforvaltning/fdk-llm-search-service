@@ -38,17 +38,17 @@ open class KafkaRemovedEventCircuitBreaker(
     @CircuitBreaker(name = "remove")
     @Transactional
     open fun process(record: ConsumerRecord<String, SpecificRecord>) {
-        LOGGER.debug("Received message - offset: " + record.offset())
+        logger.debug("Received message - offset: " + record.offset())
 
         val event = record.value()
         try {
             val (deleted, timeElapsed) = measureTimedValue {
                 if (event is DatasetEvent && event.type == DatasetEventType.DATASET_REMOVED) {
-                    LOGGER.debug("Remove embedding - id: {}", event.fdkId)
+                    logger.debug("Remove embedding - id: {}", event.fdkId)
                     embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
                     true
                 } else {
-                    LOGGER.debug("Unknown event type: {}, skipping", event)
+                    logger.debug("Unknown event type: {}, skipping", event)
                     false
                 }
             }
@@ -58,7 +58,7 @@ open class KafkaRemovedEventCircuitBreaker(
                     .record(timeElapsed.toJavaDuration())
             }
         } catch (e: Exception) {
-            LOGGER.error("Error processing message: " + e.message)
+            logger.error("Error processing message", e)
             Metrics.counter(
                 "embedding_delete_error",
                 "type", event.getResourceType()
@@ -68,6 +68,6 @@ open class KafkaRemovedEventCircuitBreaker(
     }
 
     companion object {
-        private val LOGGER: Logger = LoggerFactory.getLogger(KafkaRemovedEventCircuitBreaker::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(KafkaRemovedEventCircuitBreaker::class.java)
     }
 }

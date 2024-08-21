@@ -21,7 +21,7 @@ class EmbeddingRepository(
             deleted = rs.getBoolean("deleted"),
             timestamp = rs.getLong("timestamp"),
             metadata = ObjectMapper().readValue(
-                rs.getString("metadata"),
+                rs.getString("metadata") ?: "{}",
                 TypeFactory.defaultInstance()
                     .constructMapType(HashMap::class.java, String::class.java, String::class.java)
             ),
