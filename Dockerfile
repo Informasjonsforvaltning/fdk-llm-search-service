@@ -1,7 +1,7 @@
 FROM amazoncorretto:21-alpine3.18
 
 ARG USER=default
-ENV HOME /home/$USER
+ENV HOME=/home/$USER
 
 ENV TZ=Europe/Oslo
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -16,7 +16,7 @@ USER $USER
 WORKDIR $HOME
 
 COPY --chown=$USER:$USER /target/app.jar app.jar
-CMD java -jar -XX:+UseZGC \
-        -Dorg.xerial.snappy.use.systemlib=true \
-        -Dorg.xerial.snappy.lib.path=/usr/lib/libsnappy.so.1 \
-        $JAVA_OPTS app.jar
+CMD ["sh", "-c", "java -jar -XX:+UseZGC \
+         -Dorg.xerial.snappy.use.systemlib=true \
+         -Dorg.xerial.snappy.lib.path=/usr/lib/libsnappy.so.1 \
+         $JAVA_OPTS app.jar"]
