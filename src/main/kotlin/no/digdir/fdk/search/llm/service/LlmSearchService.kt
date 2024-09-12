@@ -15,10 +15,24 @@ class LlmSearchService(
     private val embeddingService: EmbeddingService,
     private val searchQueryRepository: SearchQueryRepository
 ) {
+    private val minQueryLength = 3
+    private val maxQueryLength = 255
+
+    private fun validateQuery(query: String) {
+        if (query.length < minQueryLength) {
+            throw IllegalArgumentException("Query must be at least $minQueryLength characters long")
+        }
+        if (query.length > maxQueryLength) {
+            throw IllegalArgumentException("Query cannot be longer than $maxQueryLength characters")
+        }
+    }
+
     /**
      * Perform similarity search and generate AI response
      */
     fun search(searchOperation: LlmSearchOperation): LlmSearchResult {
+        validateQuery(searchOperation.query)
+
         logger.debug("Search operation: {}", searchOperation)
 
         // Escape special characters
