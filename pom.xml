@@ -43,7 +43,7 @@
 
         <kotlin.version>2.0.20</kotlin.version>
         <testcontainers.version>1.19.8</testcontainers.version>
-        <avro.version>1.11.3</avro.version>
+        <avro.version>1.12.0</avro.version>
     </properties>
 
     <dependencies>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>com.pgvector</groupId>
             <artifactId>pgvector</artifactId>
-            <version>0.1.4</version>
+            <version>0.1.6</version>
         </dependency>
 
         <dependency>
@@ -119,7 +119,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
-            <version>1.26.2</version>
+            <version>1.27.1</version>
         </dependency>
 
         <dependency>
@@ -330,7 +330,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
                 <configuration>
                     <!--suppress UnresolvedMavenProperty -->
                     <argLine>${failsafe.jacoco.args}</argLine>
@@ -345,7 +345,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
                 <configuration>
                     <useSystemClassLoader>false</useSystemClassLoader>
                     <!--suppress UnresolvedMavenProperty -->
