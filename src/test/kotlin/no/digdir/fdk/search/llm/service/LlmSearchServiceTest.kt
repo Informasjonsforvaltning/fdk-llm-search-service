@@ -7,6 +7,7 @@ import no.digdir.fdk.search.llm.model.LlmSearchOperation
 import no.digdir.fdk.search.llm.model.SearchType
 import no.digdir.fdk.search.llm.model.TextEmbedding
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
+import org.junit.Assert.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import kotlin.test.assertEquals
@@ -120,5 +121,21 @@ class LlmSearchServiceTest {
         verify {
             searchQueryRepository.saveSearchQuery("Noe som ikke finnes", 3, 0, false)
         }
+    }
+
+    @Test
+    fun `llm search query must have a minimal length of 3 characters`() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            llmSearchService.search(LlmSearchOperation("ab"))
+        }
+        assertEquals("Query must be at least 3 characters long", exception.message)
+    }
+
+    @Test
+    fun `llm search query cannot be longer than 255 characters`() {
+        val exception = assertThrows(IllegalArgumentException::class.java) {
+            llmSearchService.search(LlmSearchOperation("a".repeat(256)))
+        }
+        assertEquals("Query cannot be longer than 255 characters", exception.message)
     }
 }
