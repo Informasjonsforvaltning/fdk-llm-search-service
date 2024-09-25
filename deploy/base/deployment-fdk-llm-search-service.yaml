@@ -44,7 +44,8 @@ spec:
             failureThreshold: 5
           resources:
             requests:
-              memory: 2Gi
+              memory: 4Gi
+              cpu: "1"
           volumeMounts:
             - mountPath: /var/secrets/google
               name: vertex-sa
