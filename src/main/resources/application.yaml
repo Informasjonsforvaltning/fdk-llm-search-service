@@ -23,8 +23,7 @@ spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   kafka:
-    bootstrap-servers:
-      - ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     properties:
       schema.registry.url: ${KAFKA_SCHEMA_REGISTRY:http://localhost:8081}
       specific.avro.reader: true
