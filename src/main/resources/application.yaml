@@ -72,7 +72,7 @@ ai:
     embeddingModelName: ${AI_VERTEX_EMBEDDING_MODEL_NAME:text-multilingual-embedding-002}
     maxOutputTokens: ${AI_VERTEX_MAX_OUTPUT_TOKENS:2048}
     topK: ${AI_VERTEX_TOP_K:1}
-    topP: ${AI_VERTEX_TOP_P:0.95}
+    topP: ${AI_VERTEX_TOP_P:0.8}
     temperature: ${AI_VERTEX_TEMPERATURE:0.0}
 application:
   prop: 1
