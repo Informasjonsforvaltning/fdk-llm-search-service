@@ -14,6 +14,7 @@ jobs:
     with:
       app_name: fdk-llm-search-service
       environment: staging
+      gh_environment: staging
       java_version: '21'
       coverage_file_path: ./target/site/jacoco/jacoco.xml
     secrets:
@@ -27,6 +28,7 @@ jobs:
     with:
       app_name: fdk-llm-search-service
       environment: staging
+      gh_environment: staging
       cluster: digdir-fdk-dev
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

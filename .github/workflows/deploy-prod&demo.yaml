@@ -13,6 +13,7 @@ jobs:
     with:
       app_name: fdk-llm-search-service
       environment: prod
+      gh_environment: prod
       java_version: '21'
       coverage_file_path: ./target/site/jacoco/jacoco.xml
     secrets:
@@ -25,6 +26,7 @@ jobs:
     with:
       app_name: fdk-llm-search-service
       environment: prod
+      gh_environment: prod
       cluster: digdir-fdk-prod
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,6 +40,7 @@ jobs:
     with:
       app_name: fdk-llm-search-service
       environment: demo
+      gh_environment: demo
       cluster: digdir-fdk-dev
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
