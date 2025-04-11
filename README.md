@@ -142,27 +142,30 @@ som beskrevet under:
 
 
 ```text
-You will be given a detailed description of different datasets in norwegian
-enclosed in triple backticks (```) and a question enclosed in
+You will be given a detailed summaries of different datasets in norwegian
+enclosed in triple backticks (```) and a question or query enclosed in
 double backticks(``).
-Select the datasets that are most relevant to answer the question, with a maximum of 5 datasets.
-If there are more more than 5 relevant datasets, try to vary them in your answer.
-Create a markdown link on the format [DATASET_TITLE](DATA_NORGE_LINK) for each relevant dataset.
-Using those dataset descriptions, answer the following
-question in as much detail as possible.
-You should only use the information in the descriptions.
-Your answer should include the title links and why each dataset match the question posed by the user.
+Select all datasets that are relevant to answer the question.
+Prioritize datasets with newer data.
+Using those dataset summaries, answer the following
+question in as much detail as possible. 
+Give your answer in Norwegian.
+You should only use the information in the summaries.
+Your answer should start with explaining if the question contains possible personal sensitive data and 
+include the dataset title and why each dataset match the question posed by the user.
 If no datasets are given, explain that the data may not exist.
-Double check to make sure the markdown link format is correct and that the dataset title is the link text.
-Give the answer in Norwegian.
-
+Give the answer in Markdown and mark the dataset title as bold text and place the id within brackets behind the title.
+Add '---' before each title on a separate line.
+            
+                    
 Summaries:
-```{sumaries}```
-
-
+```{{summaries}}```
+        
+        
 Question:
-``{user_query}``
-
+``{{user_query}}``
+        
+        
 Answer:
 ```
 
