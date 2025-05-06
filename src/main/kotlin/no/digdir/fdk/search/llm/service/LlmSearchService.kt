@@ -1,6 +1,8 @@
 package no.digdir.fdk.search.llm.service
 
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.langchain4j.model.input.PromptTemplate
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
@@ -42,16 +44,21 @@ class LlmSearchService(
         val embeddings = embeddingService.similaritySearch(
             query, SearchType.DATASET, SIM_THRESHOLD, NUM_MATCHES)
 
-        // Generate AI response using LLM
-        val response = vertexService.chat(PromptTemplate.from(PROMPT_TEMPLATE).apply(
+        val message = PromptTemplate.from(PROMPT_TEMPLATE).apply(
             mapOf(
-                "summaries" to embeddings.map { it.content },
+                "summaries" to objectMapper.writeValueAsString(embeddings),
                 "user_query" to query
             )
-        ).text())
+        ).text()
+        if(logger.isDebugEnabled) {
+            logger.debug("Chat message: {}", message)
+        }
+
+        // Generate AI response using LLM
+        val response = vertexService.chat(message)
 
         logger.debug("AI Response: {}", response)
-        val sensitive = response.trim().startsWith("Spørsmålet inneholder muligens personopplysninger")
+        val sensitive = response.trim().startsWith("Spørsmålet inneholder mulig personsensitiv data")
         val result = parseAiResponse(response, embeddings)
 
         // Save search query
@@ -92,6 +99,8 @@ class LlmSearchService(
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(LlmSearchService::class.java)
 
+        private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
         private const val NUM_MATCHES = 7
         private const val SIM_THRESHOLD = 0.3f
 
@@ -108,10 +117,11 @@ class LlmSearchService(
             Give your answer in Norwegian.
             You should only use the information in the summaries.
             Your answer should start with explaining if the question contains possible personal sensitive data and 
-            include the dataset title and why each dataset match the question posed by the user.
+            include the dataset name and why each dataset match the question posed by the user.
             If no datasets are given, explain that the data may not exist.
-            Give the answer in Markdown and mark the dataset title as bold text and place the id within brackets behind the title.
-            Add '---' before each title on a separate line.
+            Give the answer in Markdown and mark the dataset name as bold text and place the id within brackets behind 
+            the name but do not do this for datasets referenced in dataset descriptions.
+            Add '---' before each dataset name on a separate line.
                         
                                 
             Summaries:
