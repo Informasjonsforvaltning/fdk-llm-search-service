@@ -68,8 +68,8 @@ ai:
     endpoint: ${AI_VERTEX_ENDPOINT}
     project: ${AI_VERTEX_PROJECT}
     location: ${AI_VERTEX_LOCATION}
-    llmModelName: ${AI_VERTEX_LLM_MODEL_NAME:text-bison@002}
-    embeddingModelName: ${AI_VERTEX_EMBEDDING_MODEL_NAME:text-multilingual-embedding-002}
+    llmModelName: ${AI_VERTEX_LLM_MODEL_NAME:gemini-2.0-flash}
+    embeddingModelName: ${AI_VERTEX_EMBEDDING_MODEL_NAME:}
     maxOutputTokens: ${AI_VERTEX_MAX_OUTPUT_TOKENS:2048}
     topK: ${AI_VERTEX_TOP_K:1}
     topP: ${AI_VERTEX_TOP_P:0.8}

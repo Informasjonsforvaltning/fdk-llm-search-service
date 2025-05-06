@@ -43,12 +43,12 @@ class LlmSearchService(
             query, SearchType.DATASET, SIM_THRESHOLD, NUM_MATCHES)
 
         // Generate AI response using LLM
-        val response = vertexService.llmPrompt(PromptTemplate.from(PROMPT_TEMPLATE).apply(
+        val response = vertexService.chat(PromptTemplate.from(PROMPT_TEMPLATE).apply(
             mapOf(
                 "summaries" to embeddings.map { it.content },
                 "user_query" to query
             )
-        ))
+        ).text())
 
         logger.debug("AI Response: {}", response)
         val sensitive = response.trim().startsWith("Spørsmålet inneholder muligens personopplysninger")

@@ -1,11 +1,14 @@
 package no.digdir.fdk.search.llm.service
 
 import dev.langchain4j.data.embedding.Embedding
-import dev.langchain4j.model.input.Prompt
+import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.chat.request.ChatRequest
+import dev.langchain4j.model.chat.response.ChatResponse
 import dev.langchain4j.model.vertexai.VertexAiEmbeddingModel
-import dev.langchain4j.model.vertexai.VertexAiLanguageModel
+import dev.langchain4j.model.vertexai.VertexAiGeminiChatModel
 import no.digdir.fdk.search.llm.configuration.AiProperties
 import org.springframework.stereotype.Service
+
 
 @Service
 class VertexService(
@@ -13,16 +16,11 @@ class VertexService(
 ) {
     private val maxInputTokensForEmbedding = 2048
 
-    private val vertexAiLlm: VertexAiLanguageModel = VertexAiLanguageModel.builder()
-        .endpoint(aiProperties.vertex?.endpoint)
+    private val chatModel: VertexAiGeminiChatModel = VertexAiGeminiChatModel.builder()
         .project(aiProperties.vertex?.project)
         .location(aiProperties.vertex?.location)
-        .publisher("google")
-        .modelName(aiProperties.vertex?.llmModelName)
-        .maxOutputTokens(aiProperties.vertex?.maxOutputTokens)
-        .topK(aiProperties.vertex?.topK)
-        .topP(aiProperties.vertex?.topP)
         .temperature(aiProperties.vertex?.temperature)
+        .modelName("gemini-2.0-flash")
         .build()
 
     private val embeddingModel: VertexAiEmbeddingModel = VertexAiEmbeddingModel.builder()
@@ -30,7 +28,7 @@ class VertexService(
         .project(aiProperties.vertex?.project)
         .location(aiProperties.vertex?.location)
         .publisher("google")
-        .modelName(aiProperties.vertex?.embeddingModelName)
+        .modelName("text-multilingual-embedding-002")
         .build()
 
     /**
@@ -41,9 +39,13 @@ class VertexService(
     }
 
     /**
-     * Generate AI response using LLM
+     * Generate AI response using Chat model
      */
-    fun llmPrompt(prompt: Prompt): String {
-        return vertexAiLlm.generate(prompt).content()
+    fun chat(message: String): String {
+        val userMessage = UserMessage.from(message)
+        val chatRequest: ChatRequest? = ChatRequest.builder().messages(userMessage).build()
+
+        val response: ChatResponse? = chatModel.chat(chatRequest)
+        return response?.aiMessage()?.text().orEmpty()
     }
 }
