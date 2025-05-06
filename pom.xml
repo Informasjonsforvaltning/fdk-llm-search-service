@@ -170,14 +170,18 @@
         <!-- Langchain -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>1.0.0-rc1</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-vertex-ai</artifactId>
-            <version>0.36.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.protobuf</groupId>
-                    <artifactId>protobuf-java</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>1.0.0-beta4</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-vertex-ai-gemini</artifactId>
+            <version>1.0.0-beta4</version>
         </dependency>
         <!-- Google Protobuf override because of vulnerability CVE-2024-7254 -->
         <dependency>

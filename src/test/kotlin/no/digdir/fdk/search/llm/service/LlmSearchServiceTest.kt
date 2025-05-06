@@ -37,7 +37,7 @@ class LlmSearchServiceTest {
         """.trimIndent()
 
         every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit
-        every { vertexService.llmPrompt(any()) } returns aiResponse
+        every { vertexService.chat(any()) } returns aiResponse
         every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 7 ) } returns listOf(
             TextEmbedding("12345", "content", false, 1612137600000,mapOf(
                 "title" to "Kjøretøystatistikk",
@@ -78,7 +78,7 @@ class LlmSearchServiceTest {
         """.trimIndent()
 
         every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
-        every { vertexService.llmPrompt(any()) } returns aiResponse
+        every { vertexService.chat(any()) } returns aiResponse
         every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 7 ) } returns emptyList()
 
         val result = llmSearchService.search(LlmSearchOperation("Noe som ikke finnes"))
@@ -96,7 +96,7 @@ class LlmSearchServiceTest {
         """.trimIndent()
 
         every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
-        every { vertexService.llmPrompt(any()) } returns aiResponse
+        every { vertexService.chat(any()) } returns aiResponse
         every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 7 ) } returns listOf(
             TextEmbedding("12345", "content", false, 1612137600000, mapOf(
                 "title" to "Kjøretøystatistikk",
