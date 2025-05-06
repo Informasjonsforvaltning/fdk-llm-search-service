@@ -1,6 +1,8 @@
 package no.digdir.fdk.search.llm.service
 
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.langchain4j.model.input.PromptTemplate
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
@@ -42,88 +44,85 @@ class LlmSearchService(
         val embeddings = embeddingService.similaritySearch(
             query, SearchType.DATASET, SIM_THRESHOLD, NUM_MATCHES)
 
-        // Generate AI response using LLM
-        val response = vertexService.chat(PromptTemplate.from(PROMPT_TEMPLATE).apply(
+        val message = PromptTemplate.from(PROMPT_TEMPLATE).apply(
             mapOf(
-                "summaries" to embeddings.map { it.content },
+                "summaries" to objectMapper.writeValueAsString(embeddings),
                 "user_query" to query
             )
-        ).text())
+        ).text()
+
+        if(logger.isDebugEnabled) {
+            logger.debug("Chat message: {}", message)
+        }
+
+        // Generate AI response using LLM
+        val response = vertexService.chat(message)
 
         logger.debug("AI Response: {}", response)
-        val sensitive = response.trim().startsWith("Spørsmålet inneholder muligens personopplysninger")
-        val result = parseAiResponse(response, embeddings)
+        val result = parseAiResponse(response)
 
         // Save search query
-        searchQueryRepository.saveSearchQuery(query, embeddings.size, result.hits.size, sensitive)
+        searchQueryRepository.saveSearchQuery(query, embeddings.size, result.hits.size, result.sensitive)
 
-        return result
+        return LlmSearchResult(
+            hits = result.hits.map { hit ->
+                val embedding = embeddings.find { it.id == hit.id }
+                LlmSearchHit(
+                    id = hit.id,
+                    title = hit.name,
+                    description = hit.reason,
+                    type = embedding?.metadata?.get("type") ?: "",
+                    publisher = embedding?.metadata?.get("publisher") ?: "",
+                    publisherId = embedding?.metadata?.get("publisherId") ?: "",
+                )
+            }
+        )
     }
 
     /**
      * Parse AI response and extract search hits
      */
-    private fun parseAiResponse(response: String, textEmbeddings: List<TextEmbedding>): LlmSearchResult {
-        val hits = mutableListOf<LlmSearchHit>()
+    private fun parseAiResponse(response: String): AIResult {
+        val jsonString = Regex("```json\\s+(.*?)\\s+```", RegexOption.DOT_MATCHES_ALL)
+            .find(response)
+            ?.groupValues
+            ?.get(1)
 
-        val datasets = response.split("---")
-        datasets.forEach { dataset ->
-            val lines = dataset.trim().split("\n")
-            val id = ID_REGEX.find(lines[0])?.groupValues?.get(1) ?: ""
-            if(id.isNotEmpty()) {
-                textEmbeddings.find { it.id == id }?.let { embedding ->
-                    val title = embedding.metadata?.get("title") ?: lines[0].replace(ID_REGEX, "")
-                    val description = lines.subList(1, lines.size).joinToString("\n").trim()
-                    hits.add(LlmSearchHit(
-                        id = id,
-                        title = title,
-                        description = description,
-                        type = embedding.metadata?.get("type") ?: "",
-                        publisher = embedding.metadata?.get("publisher") ?: "",
-                        publisherId = embedding.metadata?.get("publisherId") ?: "",
-                    ))
-                }
-            }
-        }
-
-        return LlmSearchResult(hits)
+        return jsonString?.let {
+            objectMapper.readValue(it, AIResult::class.java)
+        } ?: AIResult(false, emptyList())
     }
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(LlmSearchService::class.java)
 
+        private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
         private const val NUM_MATCHES = 7
         private const val SIM_THRESHOLD = 0.3f
 
-        private val ID_REGEX = "\\[(.*?)]".toRegex()
-
         private val PROMPT_TEMPLATE = """
-            You will be given a detailed summaries of different datasets in norwegian
-            enclosed in triple backticks (```) and a question or query enclosed in
-            double backticks(``).
+            You will be given a detailed summaries of different datasets in norwegian as a JSON array.
+            The question is enclosed in double backticks(``).
             Select all datasets that are relevant to answer the question.
             Prioritize datasets with newer data.
-            Using those dataset summaries, answer the following
-            question in as much detail as possible. 
+            Using those dataset summaries, answer the question in as much detail as possible. 
             Give your answer in Norwegian.
             You should only use the information in the summaries.
-            Your answer should start with explaining if the question contains possible personal sensitive data and 
-            include the dataset title and why each dataset match the question posed by the user.
-            If no datasets are given, explain that the data may not exist.
-            Give the answer in Markdown and mark the dataset title as bold text and place the id within brackets behind the title.
-            Add '---' before each title on a separate line.
-                        
-                                
+            Your answer should start with explaining if the question contains possible personal sensitive data 
+            (sensitive) and why each dataset match the question posed by the user (reason).
+            Format the result as JSON only using the following structure format the description in Markdown: 
+            ```json
+            { "sensitive": true/false, "hits": [ { "id": "", "name": "", "reason": "" } ] }
+            ```
+                                            
             Summaries:
-            ```{{summaries}}```
-                    
+            ```json
+            {{summaries}}
+            ```        
                     
             Question:
-            ``{{user_query}}``
-                    
-                    
-            Answer:
-            
+            ``{{user_query}}``            
             """.trimIndent()
     }
 }

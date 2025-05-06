@@ -16,6 +16,7 @@ open class EmbeddingService(
     private val vertexService: VertexService,
     private val embeddingRepository: EmbeddingRepository
 ) {
+
     /**
      * Store text embedding in the database as pgvector
      */
@@ -53,9 +54,14 @@ open class EmbeddingService(
             Datasettet har ${dataset.distribution?.size ?: 0} distribusjoner${ if (formats.isNotEmpty()) " og tilbyr data på formatene ${formats.joinToString(", ")}" else ""}.
             ${ if (themes.isNotEmpty()) "Temaene for datasettet er: ${themes.joinToString(", ")}." else ""}
             ${ if (keywords.isNotEmpty()) "Nøkkelordene for datasettet er: ${keywords.joinToString(", ")}." else ""}
-            ${ if (!dataset.temporal.isNullOrEmpty()) {
-                "Dataen er tidsmessig begrenset: ${dataset.temporal.joinToString(", ") {
-                    "${it.startDate} til ${it.endDate}"}}."} else { "" } }
+           ${ if (!dataset.temporal.isNullOrEmpty()) {
+                    "Dataen er tidsmessig begrenset: ${dataset.temporal.joinToString(", ") {
+                        when {
+                            it.startDate != null && it.endDate != null -> "${it.startDate} til ${it.endDate}"
+                            it.startDate != null -> "fra ${it.startDate}"
+                            it.endDate != null -> "til ${it.endDate}"
+                            else -> ""
+                        }}}."} else { "" } }
         """.trimIndent()
 
         embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
