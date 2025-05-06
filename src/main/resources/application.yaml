@@ -1,6 +1,6 @@
 logging:
   level.root: WARN
-  level.no: ${LOG_LEVEL:INFO}
+  level.no: ${LOG_LEVEL:DEBUG}
   level.org.springframework: WARN
   level.org.springframework.web: WARN
   level.org.apache.avro: ERROR
