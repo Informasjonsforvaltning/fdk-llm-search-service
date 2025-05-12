@@ -151,33 +151,29 @@ tekstlige oppsummeringer av datasettbeskrivelser og gir instruksjoner om hvordan
 forespørselen skal behandles. En typisk spørring mot Vertex vil se ut
 som beskrevet under:
 
-```text
-You will be given a detailed summaries of different datasets in norwegian
-enclosed in triple backticks (```) and a question or query enclosed in
-double backticks(``).
+````markdown
+You will be given a detailed summaries of different datasets in norwegian as a JSON array.
+The question is enclosed in double backticks(``).
 Select all datasets that are relevant to answer the question.
 Prioritize datasets with newer data.
-Using those dataset summaries, answer the following
-question in as much detail as possible. 
+Using those dataset summaries, answer the question in as much detail as possible. 
 Give your answer in Norwegian.
 You should only use the information in the summaries.
-Your answer should start with explaining if the question contains possible personal sensitive data and 
-include the dataset title and why each dataset match the question posed by the user.
-If no datasets are given, explain that the data may not exist.
-Give the answer in Markdown and mark the dataset title as bold text and place the id within brackets behind the title.
-Add '---' before each title on a separate line.
-            
-                    
+Your answer should start with explaining if the question contains possible personal sensitive data 
+(sensitive) and why each dataset match the question posed by the user (reason).
+Format the result as JSON only using the following structure format the description in Markdown:
+```json
+{ "sensitive": true/false, "hits": [ { "id": "", "name": "", "reason": "" } ] }
+```
+
 Summaries:
-```{{summaries}}```
-        
+```json
+{{summaries}}
+```        
         
 Question:
 ``{{user_query}}``
-        
-        
-Answer:
-```
+````
 
 I vår erfaring er modellen vi bruker i Vertex meget partisk for
 Markdown og det kan være vanskelig å få noe strukturert svar i et annet
