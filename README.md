@@ -175,11 +175,6 @@ Question:
 ``{{user_query}}``
 ````
 
-I vår erfaring er modellen vi bruker i Vertex meget partisk for
-Markdown og det kan være vanskelig å få noe strukturert svar i et annet
-format. Derfor parser vi svaret fra Vertex og returnerer det som strukturerte
-data til klienten.
-
 ### Forbedringer
 
 For å øke nøyaktigheten i søket har vi forsøkt å bruke LLMen til å generere
