@@ -21,6 +21,8 @@ spec:
         prometheus.io/path: "/prometheus"
     spec:
       serviceAccountName: vertex-sa
+      nodeSelector:
+        workload-identity: enabled
       tolerations:
         - key: "workload-identity"
           operator: "Equal"
