@@ -6,5 +6,6 @@ resources:
   - ../base
   - ingress.yaml
 
-patchesStrategicMerge:
-  - env.yaml
+patches:
+  - path:
+      env.yaml

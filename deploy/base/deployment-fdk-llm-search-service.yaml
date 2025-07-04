@@ -20,6 +20,14 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/path: "/prometheus"
     spec:
+      serviceAccountName: vertex-sa
+      nodeSelector:
+        workload-identity: enabled
+      tolerations:
+        - key: "workload-identity"
+          operator: "Equal"
+          value: "only"
+          effect: "NoSchedule"
       containers:
         - name: fdk-llm-search-service
           image: fdk-llm-search-service
@@ -46,11 +54,3 @@ spec:
             requests:
               memory: 4Gi
               cpu: "1"
-          volumeMounts:
-            - mountPath: /var/secrets/google
-              name: vertex-sa
-      volumes:
-        - name: vertex-sa
-          secret:
-            defaultMode: 420
-            secretName: vertex-ai-sa-key
