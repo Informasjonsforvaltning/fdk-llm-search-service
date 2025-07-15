@@ -21,13 +21,6 @@ spec:
         prometheus.io/path: "/prometheus"
     spec:
       serviceAccountName: vertex-sa
-      nodeSelector:
-        workload-identity: enabled
-      tolerations:
-        - key: "workload-identity"
-          operator: "Equal"
-          value: "only"
-          effect: "NoSchedule"
       containers:
         - name: fdk-llm-search-service
           image: fdk-llm-search-service
