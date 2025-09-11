@@ -8,4 +8,4 @@ resources:
 
 patches:
   - path:
-      env.yaml
+      patch.yaml

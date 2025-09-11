@@ -1,4 +1,7 @@
 name: Deploy to staging
+permissions:
+  contents: read
+  packages: write
 
 on:
   pull_request:

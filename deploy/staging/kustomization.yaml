@@ -5,7 +5,3 @@ namespace: staging
 resources:
   - ../base
   - ingress.yaml
-
-patches:
-  - path:
-      env.yaml
