@@ -1,0 +1,14 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fdk-llm-search-service
+  labels:
+    app: fdk-llm-search-service
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+        - name: fdk-llm-search-service
+
