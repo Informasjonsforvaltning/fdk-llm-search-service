@@ -41,7 +41,7 @@
         <maven.compiler.target>${java.release}</maven.compiler.target>
         <maven.exec.skip>false</maven.exec.skip>
 
-        <kotlin.version>2.1.20</kotlin.version>
+        <kotlin.version>2.2.20</kotlin.version>
         <testcontainers.version>1.20.6</testcontainers.version>
         <avro.version>1.12.0</avro.version>
         <confluent.version>7.9.0</confluent.version>
