@@ -29,11 +29,13 @@ open class EmbeddingService(
         val keywords = (dataset.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
 
         val issuedAndPeriodicity = if (dataset.issued != null || dataset.accrualPeriodicity?.prefLabel?.valueByPriority() != null) {
-            val dt = dataset.issued?.let {
-                try {
-                    LocalDateTime.parse(it).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-                } catch (e: Exception) {
-                    LocalDate.parse(it).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+            val dt = dataset.issued?.let { issued ->
+                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
+                runCatching {
+                    LocalDateTime.parse(issued).format(formatter)
+                }.getOrElse {
+                    runCatching { LocalDate.parse(issued).format(formatter) }.getOrNull()
                 }
             }
             val periodicity = dataset.accrualPeriodicity?.prefLabel?.valueByPriority()
