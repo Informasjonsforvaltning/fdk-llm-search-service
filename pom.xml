@@ -114,7 +114,11 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
             <version>5.5.1</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.core5</groupId>
+            <artifactId>httpcore5</artifactId>
+            <version>5.3.6</version>
         </dependency>
         <!-- defines an API for working with compression and archive formats. -->
         <dependency>
@@ -367,11 +371,6 @@
                     <useSystemClassLoader>false</useSystemClassLoader>
                     <!--suppress UnresolvedMavenProperty -->
                     <argLine>${surefire.jacoco.args}</argLine>
-                    <groups>unit</groups>
-                    <excludedGroups>integration</excludedGroups>
-                    <includes>
-                        <include>**/*.java</include>
-                    </includes>
                 </configuration>
             </plugin>
 
