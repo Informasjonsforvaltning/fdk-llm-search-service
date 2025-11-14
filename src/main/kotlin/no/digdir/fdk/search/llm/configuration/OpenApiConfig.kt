@@ -18,7 +18,7 @@ class OpenApiConfig {
                         A REST API providing intelligent, context-aware search capabilities for Norway's national data catalog using Large Language Models (LLM).
                         
                         ## About Data.norge.no
-                        This API provides LLM-powered search functionality for the comprehensive data catalog published on [data.norge.no](https://data.norge.no), operated by the Norwegian Digitalisation Agency (Digitaliseringsdirektoratet). The catalog serves as Norway's central registry for public sector data resources, promoting fair competition and enabling data reuse for both commercial and non-commercial purposes.
+                        This API provides LLM-powered search functionality for the data catalog published on [data.norge.no](https://data.norge.no), operated by the Norwegian Digitalisation Agency (Digitaliseringsdirektoratet). The catalog serves as Norway's central registry for public sector data resources, promoting fair competition and enabling data reuse for both commercial and non-commercial purposes.
                         
                         ## What This Service Provides
                         This service enhances the data discovery experience by enabling natural language, free-text searches across the data catalog. Unlike traditional keyword-based search, this API uses advanced AI to understand the context and intent behind search queries, making it easier to find relevant datasets even when using conversational language.
