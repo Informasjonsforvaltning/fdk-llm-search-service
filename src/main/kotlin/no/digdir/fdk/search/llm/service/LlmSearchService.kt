@@ -40,9 +40,10 @@ class LlmSearchService(
         // Escape special characters
         val query = searchOperation.query.replace("`", "'")
 
-        // Perform similarity search
+        // Perform similarity search, filtered by resource type (defaults to DATASET, use ALL for all types)
+        val searchType = if (searchOperation.type == SearchType.ALL) null else searchOperation.type
         val embeddings = embeddingService.similaritySearch(
-            query, SearchType.DATASET, SIM_THRESHOLD, NUM_MATCHES)
+            query, searchType, SIM_THRESHOLD, NUM_MATCHES)
 
         val message = PromptTemplate.from(PROMPT_TEMPLATE).apply(
             mapOf(
@@ -98,19 +99,19 @@ class LlmSearchService(
 
         private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-        private const val NUM_MATCHES = 7
+        private const val NUM_MATCHES = 10
         private const val SIM_THRESHOLD = 0.3f
 
         private val PROMPT_TEMPLATE = """
-            You will be given a detailed summaries of different datasets in norwegian as a JSON array.
+            You will be given a detailed summaries of different resources (datasets, concepts, data services, information models, services, and events) in norwegian as a JSON array.
             The question is enclosed in double backticks(``).
-            Select all datasets that are relevant to answer the question.
-            Prioritize datasets with newer data.
-            Using those dataset summaries, answer the question in as much detail as possible. 
+            Select all resources that are relevant to answer the question.
+            Prioritize resources with newer data when applicable.
+            Using those resource summaries, answer the question in as much detail as possible. 
             Give your answer in Norwegian.
             You should only use the information in the summaries.
             Your answer should start with explaining if the question contains possible personal sensitive data 
-            (sensitive) and why each dataset match the question posed by the user (reason).
+            (sensitive) and why each resource matches the question posed by the user (reason).
             Format the result as JSON only using the following structure format the description in Markdown: 
             ```json
             { "sensitive": true/false, "hits": [ { "id": "", "name": "", "reason": "" } ] }

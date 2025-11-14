@@ -43,14 +43,36 @@ open class KafkaRemovedEventCircuitBreaker(
         val event = record.value()
         try {
             val (deleted, timeElapsed) = measureTimedValue {
-                if (event is DatasetEvent && event.type == DatasetEventType.DATASET_REMOVED) {
-                    logger.debug("Remove embedding - id: {}", event.fdkId)
-                    embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    true
-                } else {
-                    logger.debug("Unknown event type: {}, skipping", event)
-                    false
-                }
+                when {
+                    event is DatasetEvent && event.type == DatasetEventType.DATASET_REMOVED -> {
+                        logger.debug("Remove embedding - id: {}", event.fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
+                    }
+                    event is DataServiceEvent && event.type == no.fdk.dataservice.DataServiceEventType.DATA_SERVICE_REMOVED -> {
+                        logger.debug("Remove embedding - id: {}", event.fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
+                    }
+                    event is ConceptEvent && event.type == no.fdk.concept.ConceptEventType.CONCEPT_REMOVED -> {
+                        logger.debug("Remove embedding - id: {}", event.fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
+                    }
+                    event is InformationModelEvent && event.type == no.fdk.informationmodel.InformationModelEventType.INFORMATION_MODEL_REMOVED -> {
+                        logger.debug("Remove embedding - id: {}", event.fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
+                    }
+                    event is ServiceEvent && event.type == no.fdk.service.ServiceEventType.SERVICE_REMOVED -> {
+                        logger.debug("Remove embedding - id: {}", event.fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
+                    }
+                    event is EventEvent && event.type == no.fdk.event.EventEventType.EVENT_REMOVED -> {
+                        logger.debug("Remove embedding - id: {}", event.fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
+                    }
+                    else -> {
+                        logger.debug("Unknown event type: {}, skipping", event)
+                        false
+                    }
+                } ?: false
             }
 
             if (deleted) {

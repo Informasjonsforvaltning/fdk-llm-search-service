@@ -24,19 +24,19 @@ data class LlmSearchHit(
     )
     val description : String,
     
-    @Schema(
+    @param:Schema(
         description = "Type of resource (e.g., 'dataset', 'dataservice')",
         example = "dataset"
     )
     val type : String,
     
-    @Schema(
+    @param:Schema(
         description = "Name of the organization that published the resource",
         example = "Statistisk sentralbyrå"
     )
     val publisher : String,
     
-    @Schema(
+    @param:Schema(
         description = "Unique identifier of the publishing organization",
         example = "991825827"
     )
@@ -59,7 +59,7 @@ data class LlmSearchHit(
 }"""
 )
 data class LlmSearchResult(
-    @Schema(
+    @param:Schema(
         description = "List of search hits, ordered by relevance",
         required = true
     )

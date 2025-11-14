@@ -1,6 +1,7 @@
 package no.digdir.fdk.search.llm.model
 
 enum class SearchType {
+    ALL,
     CONCEPT,
     DATASET,
     DATA_SERVICE,
