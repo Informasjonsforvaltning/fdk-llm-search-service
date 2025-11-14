@@ -3,23 +3,23 @@ package no.digdir.fdk.search.llm.model
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(
-    description = "A single search result hit containing dataset information and relevance explanation"
+    description = "A single search result hit containing resource information and relevance explanation"
 )
 data class LlmSearchHit(
     @Schema(
-        description = "Unique identifier of the dataset",
+        description = "Unique identifier of the resource",
         example = "12345"
     )
     val id : String,
     
     @Schema(
-        description = "Title of the dataset",
+        description = "Title of the resource",
         example = "Befolkningsstatistikk"
     )
     val title : String,
     
     @Schema(
-        description = "Explanation of why this dataset matches the search query, formatted in Markdown",
+        description = "Explanation of why this resource matches the search query, formatted in Markdown",
         example = "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling."
     )
     val description : String,
@@ -31,7 +31,7 @@ data class LlmSearchHit(
     val type : String,
     
     @Schema(
-        description = "Name of the organization that published the dataset",
+        description = "Name of the organization that published the resource",
         example = "Statistisk sentralbyrå"
     )
     val publisher : String,
@@ -44,7 +44,7 @@ data class LlmSearchHit(
 )
 
 @Schema(
-    description = "Search result containing a list of relevant datasets matching the query",
+    description = "Search result containing a list of relevant resources matching the query",
     example = """{
   "hits": [
     {

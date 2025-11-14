@@ -31,20 +31,11 @@ class LlmSearchController(
     @PostMapping
     @Operation(
         summary = "Perform LLM-powered search",
-        description = """
-            Performs an intelligent, context-aware search across the data catalog using natural language queries.
-            
-            The search process uses vector similarity search combined with LLM filtering to find and rank relevant datasets.
-            Results include explanations of why each dataset matches the query, making it easier to understand relevance.
-            
-            **Query Requirements:**
-            - Minimum length: 3 characters
-            - Maximum length: 255 characters
-            - Supports natural language queries in Norwegian
-            
-            **Response Time:**
-            Typical response time is approximately 5 seconds, with most time spent on LLM processing.
-        """.trimIndent(),
+        description = "Performs an intelligent, context-aware search across the data catalog using natural language queries. " +
+                "The search process uses vector similarity search combined with LLM filtering to find and rank relevant datasets. " +
+                "Results include explanations of why each dataset matches the query, making it easier to understand relevance. " +
+                "Query requirements: minimum length 3 characters, maximum length 255 characters, supports natural language queries in Norwegian. " +
+                "Typical response time is approximately 5 seconds, with most time spent on LLM processing.",
     )
     @ApiResponses(
         value = [
@@ -53,7 +44,7 @@ class LlmSearchController(
                 description = "Successfully performed search and retrieved results",
                 content = [
                     Content(
-                        mediaType = MediaType.APPLICATION_JSON_VALUE,
+                        mediaType = "application/json",
                         schema = Schema(implementation = LlmSearchResult::class),
                     ),
                 ],
@@ -61,12 +52,12 @@ class LlmSearchController(
             ApiResponse(
                 responseCode = "400",
                 description = "Invalid request - query does not meet length requirements (must be between 3 and 255 characters)",
-                content = [Content(mediaType = MediaType.APPLICATION_JSON_VALUE)],
+                content = [Content(mediaType = "application/json")],
             ),
             ApiResponse(
                 responseCode = "500",
                 description = "Internal server error - search processing failed",
-                content = [Content(mediaType = MediaType.APPLICATION_JSON_VALUE)],
+                content = [Content(mediaType = "application/json")],
             ),
         ],
     )
