@@ -3,7 +3,7 @@ while ! /bin/kafka-topics --bootstrap-server localhost:9092 --list; do
     sleep 1
 done
 
-for topic in dataset-events data-service-events concept-events information-model-events service-events event-events rdf-parse-events; do
+for topic in dataset-events data-service-events concept-events information-model-events service-events event-events rdf-parse-events harvest-events; do
     kafka-topics --bootstrap-server localhost:9092 \
         --create --if-not-exists \
         --partitions 4 \
