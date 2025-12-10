@@ -3,8 +3,8 @@ permissions:
   contents: read
   packages: write
 
-on:
-  pull_request:
+#on:
+#  pull_request:
     types: [ready_for_review, opened, reopened, synchronize]
     branches:
       - main
