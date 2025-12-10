@@ -16,7 +16,7 @@ public class ConceptEvent extends org.apache.avro.specific.SpecificRecordBase im
   private static final long serialVersionUID = 4305350006067357512L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"ConceptEvent\",\"namespace\":\"no.fdk.concept\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"enum\",\"name\":\"ConceptEventType\",\"symbols\":[\"CONCEPT_HARVESTED\",\"CONCEPT_REASONED\",\"CONCEPT_REMOVED\"]}},{\"name\":\"harvestRunId\",\"type\":[\"null\",\"string\"]},{\"name\":\"uri\",\"type\":[\"null\",\"string\"]},{\"name\":\"fdkId\",\"type\":\"string\"},{\"name\":\"graph\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"long\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"ConceptEvent\",\"namespace\":\"no.fdk.concept\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"enum\",\"name\":\"ConceptEventType\",\"symbols\":[\"CONCEPT_HARVESTED\",\"CONCEPT_REASONED\",\"CONCEPT_REMOVED\"]}},{\"name\":\"harvestRunId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"uri\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"fdkId\",\"type\":\"string\"},{\"name\":\"graph\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"long\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
