@@ -16,7 +16,7 @@ public class InformationModelEvent extends org.apache.avro.specific.SpecificReco
   private static final long serialVersionUID = -1182062503205545427L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"InformationModelEvent\",\"namespace\":\"no.fdk.informationmodel\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"enum\",\"name\":\"InformationModelEventType\",\"symbols\":[\"INFORMATION_MODEL_HARVESTED\",\"INFORMATION_MODEL_REASONED\",\"INFORMATION_MODEL_REMOVED\"]}},{\"name\":\"harvestRunId\",\"type\":[\"null\",\"string\"]},{\"name\":\"uri\",\"type\":[\"null\",\"string\"]},{\"name\":\"fdkId\",\"type\":\"string\"},{\"name\":\"graph\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"long\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"InformationModelEvent\",\"namespace\":\"no.fdk.informationmodel\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"enum\",\"name\":\"InformationModelEventType\",\"symbols\":[\"INFORMATION_MODEL_HARVESTED\",\"INFORMATION_MODEL_REASONED\",\"INFORMATION_MODEL_REMOVED\"]}},{\"name\":\"harvestRunId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"uri\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"fdkId\",\"type\":\"string\"},{\"name\":\"graph\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"long\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();

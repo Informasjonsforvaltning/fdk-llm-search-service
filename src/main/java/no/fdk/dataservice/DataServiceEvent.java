@@ -16,7 +16,7 @@ public class DataServiceEvent extends org.apache.avro.specific.SpecificRecordBas
   private static final long serialVersionUID = 6110296492451972243L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"DataServiceEvent\",\"namespace\":\"no.fdk.dataservice\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"enum\",\"name\":\"DataServiceEventType\",\"symbols\":[\"DATA_SERVICE_HARVESTED\",\"DATA_SERVICE_REASONED\",\"DATA_SERVICE_REMOVED\"]}},{\"name\":\"harvestRunId\",\"type\":[\"null\",\"string\"]},{\"name\":\"uri\",\"type\":[\"null\",\"string\"]},{\"name\":\"fdkId\",\"type\":\"string\"},{\"name\":\"graph\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"long\"}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"DataServiceEvent\",\"namespace\":\"no.fdk.dataservice\",\"fields\":[{\"name\":\"type\",\"type\":{\"type\":\"enum\",\"name\":\"DataServiceEventType\",\"symbols\":[\"DATA_SERVICE_HARVESTED\",\"DATA_SERVICE_REASONED\",\"DATA_SERVICE_REMOVED\"]}},{\"name\":\"harvestRunId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"uri\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"fdkId\",\"type\":\"string\"},{\"name\":\"graph\",\"type\":\"string\"},{\"name\":\"timestamp\",\"type\":\"long\"}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
