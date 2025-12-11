@@ -11,6 +11,8 @@
                 "symbols": ["DATASET", "DATA_SERVICE", "CONCEPT", "INFORMATION_MODEL", "SERVICE", "EVENT"]
             }
         },
+        {"name": "harvestRunId", "type": ["null", "string"], "default": null},
+        {"name": "uri", "type": ["null", "string"], "default": null},
         {"name": "fdkId", "type": "string"},
         {"name": "data", "type": "string"},
         {"name": "timestamp", "type": "long"}

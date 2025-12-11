@@ -11,6 +11,8 @@
                 "symbols": ["EVENT_HARVESTED", "EVENT_REASONED", "EVENT_REMOVED"]
             }
         },
+        {"name": "harvestRunId", "type": ["null", "string"], "default": null},
+        {"name": "uri", "type": ["null", "string"], "default": null},
         {"name": "fdkId", "type": "string"},
         {"name": "graph", "type": "string"},
         {"name": "timestamp", "type": "long"}

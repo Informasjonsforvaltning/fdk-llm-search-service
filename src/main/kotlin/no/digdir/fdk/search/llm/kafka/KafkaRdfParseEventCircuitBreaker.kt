@@ -12,12 +12,14 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import kotlin.time.measureTimedValue
 import kotlin.time.toJavaDuration
 
 @Component
 open class KafkaRdfParseEventCircuitBreaker(
-    private val embeddingService: EmbeddingService
+    private val embeddingService: EmbeddingService,
+    private val harvestEventProducer: HarvestEventProducer
 ) {
 
     private fun storeEmbedding(event: RdfParseEvent) {
@@ -60,19 +62,49 @@ open class KafkaRdfParseEventCircuitBreaker(
         logger.debug("CB Received message - offset: " + record.offset())
 
         val event = record.value()
+        val harvestRunId = event.harvestRunId?.toString()
+        val uri = event.uri?.toString()
+        val fdkId = event.fdkId.toString()
+        val startTime = Instant.now()
+        
         try {
             val timeElapsed = measureTimedValue {
-                logger.debug("Store embedding for ${event.resourceType.name.lowercase()} - id: ${event.fdkId}")
+                logger.debug("Store embedding for ${event.resourceType.name.lowercase()} - id: $fdkId")
                 storeEmbedding(event)
             }
+            val endTime = Instant.now()
+            
             Metrics.timer("store_embedding", "type", event.resourceType.name.lowercase())
                 .record(timeElapsed.duration.toJavaDuration())
+            
+            // Produce harvest event on success
+            harvestEventProducer.produceSuccessEvent(
+                harvestRunId = harvestRunId,
+                uri = uri,
+                resourceType = event.resourceType,
+                fdkId = fdkId,
+                startTime = startTime,
+                endTime = endTime
+            )
         } catch (e: Exception) {
+            val endTime = Instant.now()
             logger.error("Error processing message", e)
             Metrics.counter(
                 "store_embedding_error",
                 "type", event.resourceType.name.lowercase()
             ).increment()
+            
+            // Produce harvest event on failure
+            harvestEventProducer.produceFailureEvent(
+                harvestRunId = harvestRunId,
+                uri = uri,
+                resourceType = event.resourceType,
+                fdkId = fdkId,
+                startTime = startTime,
+                endTime = endTime,
+                errorMessage = e.message ?: "Unknown error"
+            )
+            
             throw e
         }
     }

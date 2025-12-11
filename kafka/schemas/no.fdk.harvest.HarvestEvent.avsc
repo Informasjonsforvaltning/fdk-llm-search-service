@@ -1,0 +1,103 @@
+{
+  "name": "HarvestEvent",
+  "namespace": "no.fdk.harvest",
+  "type": "record",
+  "fields": [
+    {
+      "name": "phase",
+      "type": {
+        "type": "enum",
+        "name": "HarvestPhase",
+        "symbols": [
+          "INITIATING",
+          "HARVESTING",
+          "REASONING",
+          "RDF_PARSING",
+          "RESOURCE_PROCESSING",
+          "SEARCH_PROCESSING",
+          "AI_SEARCH_PROCESSING",
+          "SPARQL_PROCESSING"
+        ]
+      }
+    },
+    {
+      "name": "runId",
+      "type": ["null", "string"],
+      "default": null, 
+      "doc": "Unique identifier (UUID) for the harvest run this event belongs to"
+    },
+    {
+      "name": "dataType",
+      "type": {
+        "type": "enum",
+        "name": "DataType",
+        "symbols": [
+          "concept",
+          "dataset",
+          "informationmodel",
+          "dataservice",
+          "publicService",
+          "event"
+        ]
+      }
+    },
+    {
+      "name": "dataSourceId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "dataSourceUrl",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "acceptHeader",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "fdkId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "resourceUri",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "startTime",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "endTime",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "errorMessage",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "changedResourcesCount",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Number of changed resources (only for DATASOURCE_RESOURCE_EXTRACTION)"
+    },
+    {
+      "name": "unchangedResourcesCount",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Number of unchanged resources (only for DATASOURCE_RESOURCE_EXTRACTION)"
+    },
+    {
+      "name": "removedResourcesCount",
+      "type": ["null", "int"],
+      "default": null,
+      "doc": "Number of removed resources (only for DATASOURCE_RESOURCE_EXTRACTION)"
+    }
+  ]
+}
