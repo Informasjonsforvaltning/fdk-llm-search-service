@@ -13,10 +13,10 @@ import org.apache.avro.message.SchemaStore;
 
 @org.apache.avro.specific.AvroGenerated
 public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -453777438884983562L;
+  private static final long serialVersionUID = -5248602439508991857L;
 
 
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"HarvestEvent\",\"namespace\":\"no.fdk.harvest\",\"fields\":[{\"name\":\"phase\",\"type\":{\"type\":\"enum\",\"name\":\"HarvestPhase\",\"symbols\":[\"INITIATING\",\"HARVESTING\",\"REASONING\",\"RDF_PARSING\",\"RESOURCE_PROCESSING\",\"SEARCH_PROCESSING\",\"AI_SEARCH_PROCESSING\",\"SPARQL_PROCESSING\"]}},{\"name\":\"runId\",\"type\":\"string\",\"doc\":\"Unique identifier (UUID) for the harvest run this event belongs to\"},{\"name\":\"dataType\",\"type\":{\"type\":\"enum\",\"name\":\"DataType\",\"symbols\":[\"concept\",\"dataset\",\"informationmodel\",\"dataservice\",\"publicService\",\"event\"]}},{\"name\":\"dataSourceId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"dataSourceUrl\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"acceptHeader\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"fdkId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"resourceUri\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"timestamp\",\"type\":\"long\",\"logicalType\":\"timestamp-millis\"},{\"name\":\"startTime\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"endTime\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"errorMessage\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"changedResourcesCount\",\"type\":[\"null\",\"int\"],\"doc\":\"Number of changed resources (only for DATASOURCE_RESOURCE_EXTRACTION)\",\"default\":null},{\"name\":\"unchangedResourcesCount\",\"type\":[\"null\",\"int\"],\"doc\":\"Number of unchanged resources (only for DATASOURCE_RESOURCE_EXTRACTION)\",\"default\":null},{\"name\":\"removedResourcesCount\",\"type\":[\"null\",\"int\"],\"doc\":\"Number of removed resources (only for DATASOURCE_RESOURCE_EXTRACTION)\",\"default\":null}]}");
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"HarvestEvent\",\"namespace\":\"no.fdk.harvest\",\"fields\":[{\"name\":\"phase\",\"type\":{\"type\":\"enum\",\"name\":\"HarvestPhase\",\"symbols\":[\"INITIATING\",\"HARVESTING\",\"REASONING\",\"RDF_PARSING\",\"RESOURCE_PROCESSING\",\"SEARCH_PROCESSING\",\"AI_SEARCH_PROCESSING\",\"SPARQL_PROCESSING\"]}},{\"name\":\"runId\",\"type\":[\"null\",\"string\"],\"doc\":\"Unique identifier (UUID) for the harvest run this event belongs to\",\"default\":null},{\"name\":\"dataType\",\"type\":{\"type\":\"enum\",\"name\":\"DataType\",\"symbols\":[\"concept\",\"dataset\",\"informationmodel\",\"dataservice\",\"publicService\",\"event\"]}},{\"name\":\"dataSourceId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"dataSourceUrl\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"acceptHeader\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"fdkId\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"resourceUri\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"startTime\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"endTime\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"errorMessage\",\"type\":[\"null\",\"string\"],\"default\":null},{\"name\":\"changedResourcesCount\",\"type\":[\"null\",\"int\"],\"doc\":\"Number of changed resources (only for DATASOURCE_RESOURCE_EXTRACTION)\",\"default\":null},{\"name\":\"unchangedResourcesCount\",\"type\":[\"null\",\"int\"],\"doc\":\"Number of unchanged resources (only for DATASOURCE_RESOURCE_EXTRACTION)\",\"default\":null},{\"name\":\"removedResourcesCount\",\"type\":[\"null\",\"int\"],\"doc\":\"Number of removed resources (only for DATASOURCE_RESOURCE_EXTRACTION)\",\"default\":null}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static final SpecificData MODEL$ = new SpecificData();
@@ -81,7 +81,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
   private java.lang.CharSequence acceptHeader;
   private java.lang.CharSequence fdkId;
   private java.lang.CharSequence resourceUri;
-  private long timestamp;
   private java.lang.CharSequence startTime;
   private java.lang.CharSequence endTime;
   private java.lang.CharSequence errorMessage;
@@ -109,7 +108,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
    * @param acceptHeader The new value for acceptHeader
    * @param fdkId The new value for fdkId
    * @param resourceUri The new value for resourceUri
-   * @param timestamp The new value for timestamp
    * @param startTime The new value for startTime
    * @param endTime The new value for endTime
    * @param errorMessage The new value for errorMessage
@@ -117,7 +115,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
    * @param unchangedResourcesCount Number of unchanged resources (only for DATASOURCE_RESOURCE_EXTRACTION)
    * @param removedResourcesCount Number of removed resources (only for DATASOURCE_RESOURCE_EXTRACTION)
    */
-  public HarvestEvent(no.fdk.harvest.HarvestPhase phase, java.lang.CharSequence runId, no.fdk.harvest.DataType dataType, java.lang.CharSequence dataSourceId, java.lang.CharSequence dataSourceUrl, java.lang.CharSequence acceptHeader, java.lang.CharSequence fdkId, java.lang.CharSequence resourceUri, java.lang.Long timestamp, java.lang.CharSequence startTime, java.lang.CharSequence endTime, java.lang.CharSequence errorMessage, java.lang.Integer changedResourcesCount, java.lang.Integer unchangedResourcesCount, java.lang.Integer removedResourcesCount) {
+  public HarvestEvent(no.fdk.harvest.HarvestPhase phase, java.lang.CharSequence runId, no.fdk.harvest.DataType dataType, java.lang.CharSequence dataSourceId, java.lang.CharSequence dataSourceUrl, java.lang.CharSequence acceptHeader, java.lang.CharSequence fdkId, java.lang.CharSequence resourceUri, java.lang.CharSequence startTime, java.lang.CharSequence endTime, java.lang.CharSequence errorMessage, java.lang.Integer changedResourcesCount, java.lang.Integer unchangedResourcesCount, java.lang.Integer removedResourcesCount) {
     this.phase = phase;
     this.runId = runId;
     this.dataType = dataType;
@@ -126,7 +124,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     this.acceptHeader = acceptHeader;
     this.fdkId = fdkId;
     this.resourceUri = resourceUri;
-    this.timestamp = timestamp;
     this.startTime = startTime;
     this.endTime = endTime;
     this.errorMessage = errorMessage;
@@ -153,13 +150,12 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     case 5: return acceptHeader;
     case 6: return fdkId;
     case 7: return resourceUri;
-    case 8: return timestamp;
-    case 9: return startTime;
-    case 10: return endTime;
-    case 11: return errorMessage;
-    case 12: return changedResourcesCount;
-    case 13: return unchangedResourcesCount;
-    case 14: return removedResourcesCount;
+    case 8: return startTime;
+    case 9: return endTime;
+    case 10: return errorMessage;
+    case 11: return changedResourcesCount;
+    case 12: return unchangedResourcesCount;
+    case 13: return removedResourcesCount;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -177,13 +173,12 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     case 5: acceptHeader = (java.lang.CharSequence)value$; break;
     case 6: fdkId = (java.lang.CharSequence)value$; break;
     case 7: resourceUri = (java.lang.CharSequence)value$; break;
-    case 8: timestamp = (java.lang.Long)value$; break;
-    case 9: startTime = (java.lang.CharSequence)value$; break;
-    case 10: endTime = (java.lang.CharSequence)value$; break;
-    case 11: errorMessage = (java.lang.CharSequence)value$; break;
-    case 12: changedResourcesCount = (java.lang.Integer)value$; break;
-    case 13: unchangedResourcesCount = (java.lang.Integer)value$; break;
-    case 14: removedResourcesCount = (java.lang.Integer)value$; break;
+    case 8: startTime = (java.lang.CharSequence)value$; break;
+    case 9: endTime = (java.lang.CharSequence)value$; break;
+    case 10: errorMessage = (java.lang.CharSequence)value$; break;
+    case 11: changedResourcesCount = (java.lang.Integer)value$; break;
+    case 12: unchangedResourcesCount = (java.lang.Integer)value$; break;
+    case 13: removedResourcesCount = (java.lang.Integer)value$; break;
     default: throw new IndexOutOfBoundsException("Invalid index: " + field$);
     }
   }
@@ -323,23 +318,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
    */
   public void setResourceUri(java.lang.CharSequence value) {
     this.resourceUri = value;
-  }
-
-  /**
-   * Gets the value of the 'timestamp' field.
-   * @return The value of the 'timestamp' field.
-   */
-  public long getTimestamp() {
-    return timestamp;
-  }
-
-
-  /**
-   * Sets the value of the 'timestamp' field.
-   * @param value the value to set.
-   */
-  public void setTimestamp(long value) {
-    this.timestamp = value;
   }
 
   /**
@@ -497,7 +475,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     private java.lang.CharSequence acceptHeader;
     private java.lang.CharSequence fdkId;
     private java.lang.CharSequence resourceUri;
-    private long timestamp;
     private java.lang.CharSequence startTime;
     private java.lang.CharSequence endTime;
     private java.lang.CharSequence errorMessage;
@@ -551,33 +528,29 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
         this.resourceUri = data().deepCopy(fields()[7].schema(), other.resourceUri);
         fieldSetFlags()[7] = other.fieldSetFlags()[7];
       }
-      if (isValidValue(fields()[8], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[8].schema(), other.timestamp);
+      if (isValidValue(fields()[8], other.startTime)) {
+        this.startTime = data().deepCopy(fields()[8].schema(), other.startTime);
         fieldSetFlags()[8] = other.fieldSetFlags()[8];
       }
-      if (isValidValue(fields()[9], other.startTime)) {
-        this.startTime = data().deepCopy(fields()[9].schema(), other.startTime);
+      if (isValidValue(fields()[9], other.endTime)) {
+        this.endTime = data().deepCopy(fields()[9].schema(), other.endTime);
         fieldSetFlags()[9] = other.fieldSetFlags()[9];
       }
-      if (isValidValue(fields()[10], other.endTime)) {
-        this.endTime = data().deepCopy(fields()[10].schema(), other.endTime);
+      if (isValidValue(fields()[10], other.errorMessage)) {
+        this.errorMessage = data().deepCopy(fields()[10].schema(), other.errorMessage);
         fieldSetFlags()[10] = other.fieldSetFlags()[10];
       }
-      if (isValidValue(fields()[11], other.errorMessage)) {
-        this.errorMessage = data().deepCopy(fields()[11].schema(), other.errorMessage);
+      if (isValidValue(fields()[11], other.changedResourcesCount)) {
+        this.changedResourcesCount = data().deepCopy(fields()[11].schema(), other.changedResourcesCount);
         fieldSetFlags()[11] = other.fieldSetFlags()[11];
       }
-      if (isValidValue(fields()[12], other.changedResourcesCount)) {
-        this.changedResourcesCount = data().deepCopy(fields()[12].schema(), other.changedResourcesCount);
+      if (isValidValue(fields()[12], other.unchangedResourcesCount)) {
+        this.unchangedResourcesCount = data().deepCopy(fields()[12].schema(), other.unchangedResourcesCount);
         fieldSetFlags()[12] = other.fieldSetFlags()[12];
       }
-      if (isValidValue(fields()[13], other.unchangedResourcesCount)) {
-        this.unchangedResourcesCount = data().deepCopy(fields()[13].schema(), other.unchangedResourcesCount);
+      if (isValidValue(fields()[13], other.removedResourcesCount)) {
+        this.removedResourcesCount = data().deepCopy(fields()[13].schema(), other.removedResourcesCount);
         fieldSetFlags()[13] = other.fieldSetFlags()[13];
-      }
-      if (isValidValue(fields()[14], other.removedResourcesCount)) {
-        this.removedResourcesCount = data().deepCopy(fields()[14].schema(), other.removedResourcesCount);
-        fieldSetFlags()[14] = other.fieldSetFlags()[14];
       }
     }
 
@@ -619,33 +592,29 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
         this.resourceUri = data().deepCopy(fields()[7].schema(), other.resourceUri);
         fieldSetFlags()[7] = true;
       }
-      if (isValidValue(fields()[8], other.timestamp)) {
-        this.timestamp = data().deepCopy(fields()[8].schema(), other.timestamp);
+      if (isValidValue(fields()[8], other.startTime)) {
+        this.startTime = data().deepCopy(fields()[8].schema(), other.startTime);
         fieldSetFlags()[8] = true;
       }
-      if (isValidValue(fields()[9], other.startTime)) {
-        this.startTime = data().deepCopy(fields()[9].schema(), other.startTime);
+      if (isValidValue(fields()[9], other.endTime)) {
+        this.endTime = data().deepCopy(fields()[9].schema(), other.endTime);
         fieldSetFlags()[9] = true;
       }
-      if (isValidValue(fields()[10], other.endTime)) {
-        this.endTime = data().deepCopy(fields()[10].schema(), other.endTime);
+      if (isValidValue(fields()[10], other.errorMessage)) {
+        this.errorMessage = data().deepCopy(fields()[10].schema(), other.errorMessage);
         fieldSetFlags()[10] = true;
       }
-      if (isValidValue(fields()[11], other.errorMessage)) {
-        this.errorMessage = data().deepCopy(fields()[11].schema(), other.errorMessage);
+      if (isValidValue(fields()[11], other.changedResourcesCount)) {
+        this.changedResourcesCount = data().deepCopy(fields()[11].schema(), other.changedResourcesCount);
         fieldSetFlags()[11] = true;
       }
-      if (isValidValue(fields()[12], other.changedResourcesCount)) {
-        this.changedResourcesCount = data().deepCopy(fields()[12].schema(), other.changedResourcesCount);
+      if (isValidValue(fields()[12], other.unchangedResourcesCount)) {
+        this.unchangedResourcesCount = data().deepCopy(fields()[12].schema(), other.unchangedResourcesCount);
         fieldSetFlags()[12] = true;
       }
-      if (isValidValue(fields()[13], other.unchangedResourcesCount)) {
-        this.unchangedResourcesCount = data().deepCopy(fields()[13].schema(), other.unchangedResourcesCount);
+      if (isValidValue(fields()[13], other.removedResourcesCount)) {
+        this.removedResourcesCount = data().deepCopy(fields()[13].schema(), other.removedResourcesCount);
         fieldSetFlags()[13] = true;
-      }
-      if (isValidValue(fields()[14], other.removedResourcesCount)) {
-        this.removedResourcesCount = data().deepCopy(fields()[14].schema(), other.removedResourcesCount);
-        fieldSetFlags()[14] = true;
       }
     }
 
@@ -974,45 +943,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     }
 
     /**
-      * Gets the value of the 'timestamp' field.
-      * @return The value.
-      */
-    public long getTimestamp() {
-      return timestamp;
-    }
-
-
-    /**
-      * Sets the value of the 'timestamp' field.
-      * @param value The value of 'timestamp'.
-      * @return This builder.
-      */
-    public no.fdk.harvest.HarvestEvent.Builder setTimestamp(long value) {
-      validate(fields()[8], value);
-      this.timestamp = value;
-      fieldSetFlags()[8] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'timestamp' field has been set.
-      * @return True if the 'timestamp' field has been set, false otherwise.
-      */
-    public boolean hasTimestamp() {
-      return fieldSetFlags()[8];
-    }
-
-
-    /**
-      * Clears the value of the 'timestamp' field.
-      * @return This builder.
-      */
-    public no.fdk.harvest.HarvestEvent.Builder clearTimestamp() {
-      fieldSetFlags()[8] = false;
-      return this;
-    }
-
-    /**
       * Gets the value of the 'startTime' field.
       * @return The value.
       */
@@ -1027,9 +957,9 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public no.fdk.harvest.HarvestEvent.Builder setStartTime(java.lang.CharSequence value) {
-      validate(fields()[9], value);
+      validate(fields()[8], value);
       this.startTime = value;
-      fieldSetFlags()[9] = true;
+      fieldSetFlags()[8] = true;
       return this;
     }
 
@@ -1038,7 +968,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'startTime' field has been set, false otherwise.
       */
     public boolean hasStartTime() {
-      return fieldSetFlags()[9];
+      return fieldSetFlags()[8];
     }
 
 
@@ -1048,7 +978,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       */
     public no.fdk.harvest.HarvestEvent.Builder clearStartTime() {
       startTime = null;
-      fieldSetFlags()[9] = false;
+      fieldSetFlags()[8] = false;
       return this;
     }
 
@@ -1067,9 +997,9 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public no.fdk.harvest.HarvestEvent.Builder setEndTime(java.lang.CharSequence value) {
-      validate(fields()[10], value);
+      validate(fields()[9], value);
       this.endTime = value;
-      fieldSetFlags()[10] = true;
+      fieldSetFlags()[9] = true;
       return this;
     }
 
@@ -1078,7 +1008,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'endTime' field has been set, false otherwise.
       */
     public boolean hasEndTime() {
-      return fieldSetFlags()[10];
+      return fieldSetFlags()[9];
     }
 
 
@@ -1088,7 +1018,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       */
     public no.fdk.harvest.HarvestEvent.Builder clearEndTime() {
       endTime = null;
-      fieldSetFlags()[10] = false;
+      fieldSetFlags()[9] = false;
       return this;
     }
 
@@ -1107,9 +1037,9 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public no.fdk.harvest.HarvestEvent.Builder setErrorMessage(java.lang.CharSequence value) {
-      validate(fields()[11], value);
+      validate(fields()[10], value);
       this.errorMessage = value;
-      fieldSetFlags()[11] = true;
+      fieldSetFlags()[10] = true;
       return this;
     }
 
@@ -1118,7 +1048,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'errorMessage' field has been set, false otherwise.
       */
     public boolean hasErrorMessage() {
-      return fieldSetFlags()[11];
+      return fieldSetFlags()[10];
     }
 
 
@@ -1128,7 +1058,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       */
     public no.fdk.harvest.HarvestEvent.Builder clearErrorMessage() {
       errorMessage = null;
-      fieldSetFlags()[11] = false;
+      fieldSetFlags()[10] = false;
       return this;
     }
 
@@ -1149,9 +1079,9 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public no.fdk.harvest.HarvestEvent.Builder setChangedResourcesCount(java.lang.Integer value) {
-      validate(fields()[12], value);
+      validate(fields()[11], value);
       this.changedResourcesCount = value;
-      fieldSetFlags()[12] = true;
+      fieldSetFlags()[11] = true;
       return this;
     }
 
@@ -1161,7 +1091,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'changedResourcesCount' field has been set, false otherwise.
       */
     public boolean hasChangedResourcesCount() {
-      return fieldSetFlags()[12];
+      return fieldSetFlags()[11];
     }
 
 
@@ -1172,7 +1102,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       */
     public no.fdk.harvest.HarvestEvent.Builder clearChangedResourcesCount() {
       changedResourcesCount = null;
-      fieldSetFlags()[12] = false;
+      fieldSetFlags()[11] = false;
       return this;
     }
 
@@ -1193,9 +1123,9 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public no.fdk.harvest.HarvestEvent.Builder setUnchangedResourcesCount(java.lang.Integer value) {
-      validate(fields()[13], value);
+      validate(fields()[12], value);
       this.unchangedResourcesCount = value;
-      fieldSetFlags()[13] = true;
+      fieldSetFlags()[12] = true;
       return this;
     }
 
@@ -1205,7 +1135,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'unchangedResourcesCount' field has been set, false otherwise.
       */
     public boolean hasUnchangedResourcesCount() {
-      return fieldSetFlags()[13];
+      return fieldSetFlags()[12];
     }
 
 
@@ -1216,7 +1146,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       */
     public no.fdk.harvest.HarvestEvent.Builder clearUnchangedResourcesCount() {
       unchangedResourcesCount = null;
-      fieldSetFlags()[13] = false;
+      fieldSetFlags()[12] = false;
       return this;
     }
 
@@ -1237,9 +1167,9 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return This builder.
       */
     public no.fdk.harvest.HarvestEvent.Builder setRemovedResourcesCount(java.lang.Integer value) {
-      validate(fields()[14], value);
+      validate(fields()[13], value);
       this.removedResourcesCount = value;
-      fieldSetFlags()[14] = true;
+      fieldSetFlags()[13] = true;
       return this;
     }
 
@@ -1249,7 +1179,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       * @return True if the 'removedResourcesCount' field has been set, false otherwise.
       */
     public boolean hasRemovedResourcesCount() {
-      return fieldSetFlags()[14];
+      return fieldSetFlags()[13];
     }
 
 
@@ -1260,7 +1190,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       */
     public no.fdk.harvest.HarvestEvent.Builder clearRemovedResourcesCount() {
       removedResourcesCount = null;
-      fieldSetFlags()[14] = false;
+      fieldSetFlags()[13] = false;
       return this;
     }
 
@@ -1277,13 +1207,12 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
         record.acceptHeader = fieldSetFlags()[5] ? this.acceptHeader : (java.lang.CharSequence) defaultValue(fields()[5]);
         record.fdkId = fieldSetFlags()[6] ? this.fdkId : (java.lang.CharSequence) defaultValue(fields()[6]);
         record.resourceUri = fieldSetFlags()[7] ? this.resourceUri : (java.lang.CharSequence) defaultValue(fields()[7]);
-        record.timestamp = fieldSetFlags()[8] ? this.timestamp : (java.lang.Long) defaultValue(fields()[8]);
-        record.startTime = fieldSetFlags()[9] ? this.startTime : (java.lang.CharSequence) defaultValue(fields()[9]);
-        record.endTime = fieldSetFlags()[10] ? this.endTime : (java.lang.CharSequence) defaultValue(fields()[10]);
-        record.errorMessage = fieldSetFlags()[11] ? this.errorMessage : (java.lang.CharSequence) defaultValue(fields()[11]);
-        record.changedResourcesCount = fieldSetFlags()[12] ? this.changedResourcesCount : (java.lang.Integer) defaultValue(fields()[12]);
-        record.unchangedResourcesCount = fieldSetFlags()[13] ? this.unchangedResourcesCount : (java.lang.Integer) defaultValue(fields()[13]);
-        record.removedResourcesCount = fieldSetFlags()[14] ? this.removedResourcesCount : (java.lang.Integer) defaultValue(fields()[14]);
+        record.startTime = fieldSetFlags()[8] ? this.startTime : (java.lang.CharSequence) defaultValue(fields()[8]);
+        record.endTime = fieldSetFlags()[9] ? this.endTime : (java.lang.CharSequence) defaultValue(fields()[9]);
+        record.errorMessage = fieldSetFlags()[10] ? this.errorMessage : (java.lang.CharSequence) defaultValue(fields()[10]);
+        record.changedResourcesCount = fieldSetFlags()[11] ? this.changedResourcesCount : (java.lang.Integer) defaultValue(fields()[11]);
+        record.unchangedResourcesCount = fieldSetFlags()[12] ? this.unchangedResourcesCount : (java.lang.Integer) defaultValue(fields()[12]);
+        record.removedResourcesCount = fieldSetFlags()[13] ? this.removedResourcesCount : (java.lang.Integer) defaultValue(fields()[13]);
         return record;
       } catch (org.apache.avro.AvroMissingFieldException e) {
         throw e;
@@ -1318,7 +1247,13 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
   {
     out.writeEnum(this.phase.ordinal());
 
-    out.writeString(this.runId);
+    if (this.runId == null) {
+      out.writeIndex(0);
+      out.writeNull();
+    } else {
+      out.writeIndex(1);
+      out.writeString(this.runId);
+    }
 
     out.writeEnum(this.dataType.ordinal());
 
@@ -1361,8 +1296,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       out.writeIndex(1);
       out.writeString(this.resourceUri);
     }
-
-    out.writeLong(this.timestamp);
 
     if (this.startTime == null) {
       out.writeIndex(0);
@@ -1421,7 +1354,12 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     if (fieldOrder == null) {
       this.phase = no.fdk.harvest.HarvestPhase.values()[in.readEnum()];
 
-      this.runId = in.readString(this.runId instanceof Utf8 ? (Utf8)this.runId : null);
+      if (in.readIndex() != 1) {
+        in.readNull();
+        this.runId = null;
+      } else {
+        this.runId = in.readString(this.runId instanceof Utf8 ? (Utf8)this.runId : null);
+      }
 
       this.dataType = no.fdk.harvest.DataType.values()[in.readEnum()];
 
@@ -1459,8 +1397,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       } else {
         this.resourceUri = in.readString(this.resourceUri instanceof Utf8 ? (Utf8)this.resourceUri : null);
       }
-
-      this.timestamp = in.readLong();
 
       if (in.readIndex() != 1) {
         in.readNull();
@@ -1505,14 +1441,19 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       }
 
     } else {
-      for (int i = 0; i < 15; i++) {
+      for (int i = 0; i < 14; i++) {
         switch (fieldOrder[i].pos()) {
         case 0:
           this.phase = no.fdk.harvest.HarvestPhase.values()[in.readEnum()];
           break;
 
         case 1:
-          this.runId = in.readString(this.runId instanceof Utf8 ? (Utf8)this.runId : null);
+          if (in.readIndex() != 1) {
+            in.readNull();
+            this.runId = null;
+          } else {
+            this.runId = in.readString(this.runId instanceof Utf8 ? (Utf8)this.runId : null);
+          }
           break;
 
         case 2:
@@ -1565,10 +1506,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
           break;
 
         case 8:
-          this.timestamp = in.readLong();
-          break;
-
-        case 9:
           if (in.readIndex() != 1) {
             in.readNull();
             this.startTime = null;
@@ -1577,7 +1514,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
           }
           break;
 
-        case 10:
+        case 9:
           if (in.readIndex() != 1) {
             in.readNull();
             this.endTime = null;
@@ -1586,7 +1523,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
           }
           break;
 
-        case 11:
+        case 10:
           if (in.readIndex() != 1) {
             in.readNull();
             this.errorMessage = null;
@@ -1595,7 +1532,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
           }
           break;
 
-        case 12:
+        case 11:
           if (in.readIndex() != 1) {
             in.readNull();
             this.changedResourcesCount = null;
@@ -1604,7 +1541,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
           }
           break;
 
-        case 13:
+        case 12:
           if (in.readIndex() != 1) {
             in.readNull();
             this.unchangedResourcesCount = null;
@@ -1613,7 +1550,7 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
           }
           break;
 
-        case 14:
+        case 13:
           if (in.readIndex() != 1) {
             in.readNull();
             this.removedResourcesCount = null;
@@ -1640,7 +1577,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
     result = 31 * result + (acceptHeader == null ? 0 : acceptHeader.hashCode());
     result = 31 * result + (fdkId == null ? 0 : fdkId.hashCode());
     result = 31 * result + (resourceUri == null ? 0 : resourceUri.hashCode());
-    result = 31 * result + Long.hashCode(timestamp);
     result = 31 * result + (startTime == null ? 0 : startTime.hashCode());
     result = 31 * result + (endTime == null ? 0 : endTime.hashCode());
     result = 31 * result + (errorMessage == null ? 0 : errorMessage.hashCode());
@@ -1681,9 +1617,6 @@ public class HarvestEvent extends org.apache.avro.specific.SpecificRecordBase im
       return false;
     }
     if (Utf8.compareSequences(this.resourceUri, other.resourceUri) != 0) {
-      return false;
-    }
-    if (this.timestamp != other.timestamp) {
       return false;
     }
     if (Utf8.compareSequences(this.startTime, other.startTime) != 0) {

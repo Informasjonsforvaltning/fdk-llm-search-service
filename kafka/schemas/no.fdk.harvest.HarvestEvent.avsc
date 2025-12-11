@@ -19,10 +19,11 @@
           "SPARQL_PROCESSING"
         ]
       }
-    },    
+    },
     {
       "name": "runId",
-      "type": "string",
+      "type": ["null", "string"],
+      "default": null, 
       "doc": "Unique identifier (UUID) for the harvest run this event belongs to"
     },
     {
@@ -64,11 +65,6 @@
       "name": "resourceUri",
       "type": ["null", "string"],
       "default": null
-    },
-    {
-      "name": "timestamp",
-      "type": "long",
-      "logicalType": "timestamp-millis"
     },
     {
       "name": "startTime",
