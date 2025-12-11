@@ -3,11 +3,11 @@ permissions:
   contents: read
   packages: write
 
-on:
-  pull_request:
-    types: [ready_for_review, opened, reopened, synchronize]
-    branches:
-      - main
+#on:
+#  pull_request:
+#    types: [ready_for_review, opened, reopened, synchronize]
+#    branches:
+#      - main
 
 jobs:
   build-fdk-llm-search-service:

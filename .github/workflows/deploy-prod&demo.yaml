@@ -1,13 +1,14 @@
 name: Deploy to production and demo
+
 permissions:
   contents: read
   packages: write
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+#on:
+#  push:
+#    branches:
+#      - main
+#  workflow_dispatch:
 
 jobs:
   build-fdk-llm-search-service:
