@@ -351,7 +351,7 @@ val TEST_SERVICE_ALL_FIELDS = no.digdir.fdk.search.llm.model.Service(
             identifier = "owner-id",
             uri = "owner-uri",
             orgPath = "/ORG/303",
-            name = LocalizedStrings("NB Owner Name", null, null, null),
+            prefLabel = LocalizedStrings("NB Owner Name", null, null, null),
             title = LocalizedStrings("NB Owner Title", null, null, null)
         )
     ),
@@ -360,7 +360,7 @@ val TEST_SERVICE_ALL_FIELDS = no.digdir.fdk.search.llm.model.Service(
             identifier = "authority-id",
             uri = "authority-uri",
             orgPath = "/ORG/404",
-            name = LocalizedStrings("NB Authority Name", null, null, null),
+            prefLabel = LocalizedStrings("NB Authority Name", null, null, null),
             title = LocalizedStrings("NB Authority Title", null, null, null)
         )
     ),

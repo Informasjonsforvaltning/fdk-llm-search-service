@@ -201,8 +201,8 @@ open class EmbeddingService(
             (service.losTheme?.mapNotNull { it.name?.valueByPriority() } ?: emptyList())).toSet()
 
         val keywords = (service.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
-        val owners = service.ownedBy?.mapNotNull { it.name?.valueByPriority() ?: it.title?.valueByPriority() } ?: emptyList()
-        val authorities = service.hasCompetentAuthority?.mapNotNull { it.name?.valueByPriority() ?: it.title?.valueByPriority() } ?: emptyList()
+        val owners = service.ownedBy?.mapNotNull { it.prefLabel?.valueByPriority() ?: it.title?.valueByPriority() } ?: emptyList()
+        val authorities = service.hasCompetentAuthority?.mapNotNull { it.prefLabel?.valueByPriority() ?: it.title?.valueByPriority() } ?: emptyList()
 
         val summary = """
             Denne tjenesten, med id '${fdkId}' og navn '${service.title?.valueByPriority()}' er utgitt av '${service.catalog?.publisher?.prefLabel?.valueByPriority()}'.
