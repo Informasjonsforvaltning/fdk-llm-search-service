@@ -197,7 +197,6 @@ Tjenesten eies av: NB Owner Name.
 Tjenesten har kompetent myndighet: NB Authority Name.
 Temaene for tjenesten er: theme1, lostheme1.
 Nøkkelordene for tjenesten er: keyword1.
-Tjenesten er tilgjengelig i: Oslo, Bergen.
         """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
