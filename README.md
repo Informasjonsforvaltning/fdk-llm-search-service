@@ -174,7 +174,7 @@ Summaries:
 ```
 
 Question:
-`{{user_query}}`
+``{{user_query}}``
 ````
 
 ### Forbedringer
