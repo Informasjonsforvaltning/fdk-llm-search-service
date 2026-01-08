@@ -214,7 +214,6 @@ open class EmbeddingService(
             ${ if (authorities.isNotEmpty()) "Tjenesten har kompetent myndighet: ${authorities.joinToString(", ")}." else ""}
             ${ if (themes.isNotEmpty()) "Temaene for tjenesten er: ${themes.joinToString(", ")}." else ""}
             ${ if (keywords.isNotEmpty()) "Nøkkelordene for tjenesten er: ${keywords.joinToString(", ")}." else ""}
-            ${ if (!service.spatial.isNullOrEmpty()) "Tjenesten er tilgjengelig i: ${service.spatial.joinToString(", ")}." else ""}
         """.trimIndent()
 
         embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(

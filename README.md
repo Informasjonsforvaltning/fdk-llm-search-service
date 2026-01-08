@@ -21,7 +21,7 @@ Kafka messages are serialized using Avro. Avro schemas are located in the kafka/
 To generate sources from Avro schema, run the following command:
 
 ```
-mvn generate-sources    
+mvn generate-sources
 ```
 
 ## Run tests
@@ -105,8 +105,8 @@ Dette datasettet, med id '12345' og navn 'Mitt datasett' er utgitt av 'Organisas
 Datasettet har public tilgang.
 
 Beskrivelsen av datasettet er som følger:
-Her finner man beskrivelsen av datasettet. 
- 
+Her finner man beskrivelsen av datasettet.
+
 Datasettet ble utgitt 01.01.2021 og oppdateres ukentlig.
 Datasettet har 2 distribusjoner og tilbyr data på formatene json.
 Temaene for datasettet er: tema1, tema2, tema3.
@@ -156,23 +156,25 @@ You will be given a detailed summaries of different datasets in norwegian as a J
 The question is enclosed in double backticks(``).
 Select all datasets that are relevant to answer the question.
 Prioritize datasets with newer data.
-Using those dataset summaries, answer the question in as much detail as possible. 
+Using those dataset summaries, answer the question in as much detail as possible.
 Give your answer in Norwegian.
 You should only use the information in the summaries.
-Your answer should start with explaining if the question contains possible personal sensitive data 
+Your answer should start with explaining if the question contains possible personal sensitive data
 (sensitive) and why each dataset match the question posed by the user (reason).
 Format the result as JSON only using the following structure format the description in Markdown:
+
 ```json
 { "sensitive": true/false, "hits": [ { "id": "", "name": "", "reason": "" } ] }
 ```
 
 Summaries:
+
 ```json
 {{summaries}}
-```        
-        
+```
+
 Question:
-``{{user_query}}``
+`{{user_query}}`
 ````
 
 ### Forbedringer
