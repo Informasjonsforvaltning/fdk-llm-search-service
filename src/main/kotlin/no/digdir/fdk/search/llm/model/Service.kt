@@ -13,7 +13,7 @@ data class Service(
     val losTheme: List<LosNode>?,
     val ownedBy: List<ServiceOrganization>?,
     val hasCompetentAuthority: List<ServiceOrganization>?,
-    val spatial: List<String>?,
+    val spatial: List<ReferenceDataCode>?,
     val harvest: HarvestMetadata?,
     val isGroupedBy: List<String>?,
     val isClassifiedBy: List<ObjectWithURI>?,

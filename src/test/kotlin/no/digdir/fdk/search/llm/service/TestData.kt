@@ -364,7 +364,17 @@ val TEST_SERVICE_ALL_FIELDS = no.digdir.fdk.search.llm.model.Service(
             title = LocalizedStrings("NB Authority Title", null, null, null)
         )
     ),
-    spatial = listOf("Oslo", "Bergen"),
+    spatial = listOf(
+        ReferenceDataCode(
+            uri = "spatial > uri",
+            code = "Test spatial > code",
+            prefLabel = LocalizedStrings(
+                "NB Test spatial > prefLabel",
+                "NN Test spatial > prefLabel",
+                "NO Test spatial > prefLabel",
+                "EN Test spatial > prefLabel")
+        )
+    ),
     harvest = HarvestMetadata(
         firstHarvested = "2021-01-01",
         modified = "2021-01-02"
