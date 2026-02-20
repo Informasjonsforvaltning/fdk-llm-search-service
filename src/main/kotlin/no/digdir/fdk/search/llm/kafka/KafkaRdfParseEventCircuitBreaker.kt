@@ -5,8 +5,8 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import io.micrometer.core.instrument.Metrics
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.service.EmbeddingService
-import no.fdk.rdf.parse.RdfParseEvent
 import no.fdk.rdf.parse.RdfParseResourceType
+import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -22,34 +22,49 @@ open class KafkaRdfParseEventCircuitBreaker(
     private val harvestEventProducer: HarvestEventProducer
 ) {
 
-    private fun storeEmbedding(event: RdfParseEvent) {
+    private fun resourceTypeFromRecord(record: GenericRecord): RdfParseResourceType {
+        val typeStr = (record.get("resourceType") ?: "").toString()
+        return when (typeStr) {
+            "DATASET" -> RdfParseResourceType.DATASET
+            "DATA_SERVICE" -> RdfParseResourceType.DATA_SERVICE
+            "CONCEPT" -> RdfParseResourceType.CONCEPT
+            "INFORMATION_MODEL" -> RdfParseResourceType.INFORMATION_MODEL
+            "SERVICE" -> RdfParseResourceType.SERVICE
+            "EVENT" -> RdfParseResourceType.EVENT
+            else -> throw IllegalArgumentException("Unknown resourceType: $typeStr")
+        }
+    }
+
+    private fun storeEmbedding(record: GenericRecord, resourceType: RdfParseResourceType) {
         val mapper = jacksonObjectMapper()
-        val fdkId = event.fdkId.toString()
-        
-        when (event.resourceType) {
+        val fdkId = (record.get("fdkId") ?: "").toString()
+        val data = (record.get("data") ?: "").toString()
+        val timestamp = runCatching { (record.get("timestamp") as? Number)?.toLong() }.getOrNull() ?: 0L
+
+        when (resourceType) {
             RdfParseResourceType.DATASET -> {
-                val dataset = mapper.readValue(event.data.toString(), Dataset::class.java)
-                embeddingService.storeDatasetEmbedding(fdkId, dataset, event.timestamp)
+                val dataset = mapper.readValue(data, Dataset::class.java)
+                embeddingService.storeDatasetEmbedding(fdkId, dataset, timestamp)
             }
             RdfParseResourceType.CONCEPT -> {
-                val concept = mapper.readValue(event.data.toString(), Concept::class.java)
-                embeddingService.storeConceptEmbedding(fdkId, concept, event.timestamp)
+                val concept = mapper.readValue(data, Concept::class.java)
+                embeddingService.storeConceptEmbedding(fdkId, concept, timestamp)
             }
             RdfParseResourceType.DATA_SERVICE -> {
-                val dataService = mapper.readValue(event.data.toString(), DataService::class.java)
-                embeddingService.storeDataServiceEmbedding(fdkId, dataService, event.timestamp)
+                val dataService = mapper.readValue(data, DataService::class.java)
+                embeddingService.storeDataServiceEmbedding(fdkId, dataService, timestamp)
             }
             RdfParseResourceType.INFORMATION_MODEL -> {
-                val informationModel = mapper.readValue(event.data.toString(), InformationModel::class.java)
-                embeddingService.storeInformationModelEmbedding(fdkId, informationModel, event.timestamp)
+                val informationModel = mapper.readValue(data, InformationModel::class.java)
+                embeddingService.storeInformationModelEmbedding(fdkId, informationModel, timestamp)
             }
             RdfParseResourceType.SERVICE -> {
-                val serviceModel = mapper.readValue(event.data.toString(), no.digdir.fdk.search.llm.model.Service::class.java)
-                embeddingService.storeServiceEmbedding(fdkId, serviceModel, event.timestamp)
+                val serviceModel = mapper.readValue(data, no.digdir.fdk.search.llm.model.Service::class.java)
+                embeddingService.storeServiceEmbedding(fdkId, serviceModel, timestamp)
             }
             RdfParseResourceType.EVENT -> {
-                val eventModel = mapper.readValue(event.data.toString(), Event::class.java)
-                embeddingService.storeEventEmbedding(fdkId, eventModel, event.timestamp)
+                val eventModel = mapper.readValue(data, Event::class.java)
+                embeddingService.storeEventEmbedding(fdkId, eventModel, timestamp)
             }
         }
     }
@@ -57,31 +72,31 @@ open class KafkaRdfParseEventCircuitBreaker(
     @CircuitBreaker(name = "rdf-parse")
     @Transactional
     open fun process(
-        record: ConsumerRecord<String, RdfParseEvent>
+        record: ConsumerRecord<String, GenericRecord>
     ) {
         logger.debug("CB Received message - offset: " + record.offset())
 
         val event = record.value()
-        val harvestRunId = event.harvestRunId?.toString()
-        val uri = event.uri?.toString()
-        val fdkId = event.fdkId.toString()
+        val resourceType = resourceTypeFromRecord(event)
+        val harvestRunId = runCatching { event.get("harvestRunId")?.toString() }.getOrNull()
+        val uri = runCatching { event.get("uri")?.toString() }.getOrNull()
+        val fdkId = (event.get("fdkId") ?: "").toString()
         val startTime = Instant.now()
-        
+
         try {
             val timeElapsed = measureTimedValue {
-                logger.debug("Store embedding for ${event.resourceType.name.lowercase()} - id: $fdkId")
-                storeEmbedding(event)
+                logger.debug("Store embedding for ${resourceType.name.lowercase()} - id: $fdkId")
+                storeEmbedding(event, resourceType)
             }
             val endTime = Instant.now()
-            
-            Metrics.timer("store_embedding", "type", event.resourceType.name.lowercase())
+
+            Metrics.timer("store_embedding", "type", resourceType.name.lowercase())
                 .record(timeElapsed.duration.toJavaDuration())
-            
-            // Produce harvest event on success
+
             harvestEventProducer.produceSuccessEvent(
                 harvestRunId = harvestRunId,
                 uri = uri,
-                resourceType = event.resourceType,
+                resourceType = resourceType,
                 fdkId = fdkId,
                 startTime = startTime,
                 endTime = endTime
@@ -91,20 +106,19 @@ open class KafkaRdfParseEventCircuitBreaker(
             logger.error("Error processing message", e)
             Metrics.counter(
                 "store_embedding_error",
-                "type", event.resourceType.name.lowercase()
+                "type", resourceType.name.lowercase()
             ).increment()
-            
-            // Produce harvest event on failure
+
             harvestEventProducer.produceFailureEvent(
                 harvestRunId = harvestRunId,
                 uri = uri,
-                resourceType = event.resourceType,
+                resourceType = resourceType,
                 fdkId = fdkId,
                 startTime = startTime,
                 endTime = endTime,
                 errorMessage = e.message ?: "Unknown error"
             )
-            
+
             throw e
         }
     }
