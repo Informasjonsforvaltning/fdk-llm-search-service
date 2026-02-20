@@ -18,12 +18,13 @@
           "AI_SEARCH_PROCESSING",
           "SPARQL_PROCESSING"
         ]
-      }
+      },
+      "doc": "Current phase of the harvest process"
     },
     {
       "name": "runId",
       "type": ["null", "string"],
-      "default": null, 
+      "default": null,
       "doc": "Unique identifier (UUID) for the harvest run this event belongs to"
     },
     {
@@ -37,67 +38,83 @@
           "informationmodel",
           "dataservice",
           "publicService",
+          "service",
           "event"
         ]
-      }
+      },
+      "doc": "Type of data being harvested (concept, dataset, information model, etc.)"
     },
     {
       "name": "dataSourceId",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "Identifier of the data source being harvested"
     },
     {
       "name": "dataSourceUrl",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "URL of the data source endpoint being harvested"
     },
     {
       "name": "acceptHeader",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "HTTP Accept header used when fetching (e.g. for RDF content negotiation)"
     },
     {
       "name": "fdkId",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "FDK identifier for the harvested resource"
     },
     {
       "name": "resourceUri",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "URI of the harvested resource"
     },
     {
       "name": "startTime",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "ISO-8601 timestamp when the phase or operation started"
     },
     {
       "name": "endTime",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "ISO-8601 timestamp when the phase or operation ended"
     },
     {
       "name": "errorMessage",
       "type": ["null", "string"],
-      "default": null
+      "default": null,
+      "doc": "Error message if the harvest phase or operation failed"
     },
     {
       "name": "changedResourcesCount",
       "type": ["null", "int"],
       "default": null,
-      "doc": "Number of changed resources (only for DATASOURCE_RESOURCE_EXTRACTION)"
-    },
-    {
-      "name": "unchangedResourcesCount",
-      "type": ["null", "int"],
-      "default": null,
-      "doc": "Number of unchanged resources (only for DATASOURCE_RESOURCE_EXTRACTION)"
+      "doc": "Number of changed resources (only for HARVESTING)"
     },
     {
       "name": "removedResourcesCount",
       "type": ["null", "int"],
       "default": null,
-      "doc": "Number of removed resources (only for DATASOURCE_RESOURCE_EXTRACTION)"
+      "doc": "Number of removed resources (only for HARVESTING)"
+    },
+    {
+      "name": "removeAll",
+      "type": ["null", "boolean"],
+      "default": null,
+      "doc": "If true, marks all resources for the dataSource as deleted (only INITIATING)"
+    },
+    {
+      "name": "forced",
+      "type": ["null", "boolean"],
+      "default": false,
+      "doc": "If true, forces an update even if resources haven't changed (only INITIATING)"
     }
   ]
 }

@@ -3,14 +3,7 @@ package no.digdir.fdk.search.llm.kafka
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import io.micrometer.core.instrument.Metrics
 import no.digdir.fdk.search.llm.service.EmbeddingService
-import no.fdk.concept.ConceptEvent
-import no.fdk.dataservice.DataServiceEvent
-import no.fdk.dataset.DatasetEvent
-import no.fdk.dataset.DatasetEventType
-import no.fdk.event.EventEvent
-import no.fdk.informationmodel.InformationModelEvent
-import no.fdk.service.ServiceEvent
-import org.apache.avro.specific.SpecificRecord
+import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -25,115 +18,65 @@ open class KafkaRemovedEventCircuitBreaker(
     private val embeddingService: EmbeddingService,
     private val harvestEventProducer: HarvestEventProducer
 ) {
-    private fun SpecificRecord.getResourceType(): String {
-        return when (this) {
-            is DatasetEvent -> "dataset"
-            is DataServiceEvent -> "data-service"
-            is ConceptEvent -> "concept"
-            is InformationModelEvent -> "information-model"
-            is ServiceEvent -> "service"
-            is EventEvent -> "event"
-            else -> "invalid-type"
-        }
+
+    private fun resourceTypeFromSchema(schemaName: String?): String = when (schemaName) {
+        "no.fdk.dataset.DatasetEvent" -> "dataset"
+        "no.fdk.dataservice.DataServiceEvent" -> "data-service"
+        "no.fdk.concept.ConceptEvent" -> "concept"
+        "no.fdk.informationmodel.InformationModelEvent" -> "information-model"
+        "no.fdk.service.ServiceEvent" -> "service"
+        "no.fdk.event.EventEvent" -> "event"
+        else -> "invalid-type"
     }
 
-    private fun SpecificRecord.getHarvestRunId(): String? {
-        return when (this) {
-            is DatasetEvent -> this.harvestRunId?.toString()
-            is DataServiceEvent -> this.harvestRunId?.toString()
-            is ConceptEvent -> this.harvestRunId?.toString()
-            is InformationModelEvent -> this.harvestRunId?.toString()
-            is ServiceEvent -> this.harvestRunId?.toString()
-            is EventEvent -> this.harvestRunId?.toString()
-            else -> null
-        }
-    }
-
-    private fun SpecificRecord.getUri(): String? {
-        return when (this) {
-            is DatasetEvent -> this.uri?.toString()
-            is DataServiceEvent -> this.uri?.toString()
-            is ConceptEvent -> this.uri?.toString()
-            is InformationModelEvent -> this.uri?.toString()
-            is ServiceEvent -> this.uri?.toString()
-            is EventEvent -> this.uri?.toString()
-            else -> null
-        }
-    }
-
-    private fun SpecificRecord.getFdkId(): String? {
-        return when (this) {
-            is DatasetEvent -> this.fdkId?.toString()
-            is DataServiceEvent -> this.fdkId?.toString()
-            is ConceptEvent -> this.fdkId?.toString()
-            is InformationModelEvent -> this.fdkId?.toString()
-            is ServiceEvent -> this.fdkId?.toString()
-            is EventEvent -> this.fdkId?.toString()
-            else -> null
-        }
+    private fun isRemovedEvent(typeStr: String?): Boolean = when (typeStr) {
+        "DATASET_REMOVED", "DATA_SERVICE_REMOVED", "CONCEPT_REMOVED",
+        "INFORMATION_MODEL_REMOVED", "SERVICE_REMOVED", "EVENT_REMOVED" -> true
+        else -> false
     }
 
     @CircuitBreaker(name = "remove")
     @Transactional
-    open fun process(record: ConsumerRecord<String, SpecificRecord>) {
+    open fun process(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("Received message - offset: " + record.offset())
 
         val event = record.value()
-        val harvestRunId = event.getHarvestRunId()
-        val uri = event.getUri()
-        val fdkId = event.getFdkId() ?: return
-        val resourceType = event.getResourceType()
+        val schemaName = event?.schema?.fullName
+        val typeStr = event?.get("type")?.toString()
+        val harvestRunId = runCatching { event?.get("harvestRunId")?.toString() }.getOrNull()
+        val uri = runCatching { event?.get("uri")?.toString() }.getOrNull()
+        val fdkId = event?.get("fdkId")?.toString() ?: return
+        val timestamp = runCatching { (event?.get("timestamp") as? Number)?.toLong() }.getOrNull() ?: 0L
+        val resourceType = resourceTypeFromSchema(schemaName)
         val startTime = Instant.now()
-        
+
         try {
             val (deleted, timeElapsed) = measureTimedValue {
-                when {
-                    event is DatasetEvent && event.type == DatasetEventType.DATASET_REMOVED -> {
-                        logger.debug("Remove embedding - id: {}", event.fdkId)
-                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    }
-                    event is DataServiceEvent && event.type == no.fdk.dataservice.DataServiceEventType.DATA_SERVICE_REMOVED -> {
-                        logger.debug("Remove embedding - id: {}", event.fdkId)
-                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    }
-                    event is ConceptEvent && event.type == no.fdk.concept.ConceptEventType.CONCEPT_REMOVED -> {
-                        logger.debug("Remove embedding - id: {}", event.fdkId)
-                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    }
-                    event is InformationModelEvent && event.type == no.fdk.informationmodel.InformationModelEventType.INFORMATION_MODEL_REMOVED -> {
-                        logger.debug("Remove embedding - id: {}", event.fdkId)
-                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    }
-                    event is ServiceEvent && event.type == no.fdk.service.ServiceEventType.SERVICE_REMOVED -> {
-                        logger.debug("Remove embedding - id: {}", event.fdkId)
-                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    }
-                    event is EventEvent && event.type == no.fdk.event.EventEventType.EVENT_REMOVED -> {
-                        logger.debug("Remove embedding - id: {}", event.fdkId)
-                        embeddingService.markDeletedByIdAndBeforeTimestamp(event.fdkId.toString(), event.timestamp)
-                    }
-                    else -> {
-                        logger.debug("Unknown event type: {}, skipping", event)
-                        false
-                    }
-                } ?: false
+                if (isRemovedEvent(typeStr)) {
+                    logger.debug("Remove embedding - id: {}", fdkId)
+                    embeddingService.markDeletedByIdAndBeforeTimestamp(fdkId, timestamp)
+                } else {
+                    logger.debug("Unknown event type: {}, skipping", typeStr)
+                    false
+                }
             }
             val endTime = Instant.now()
 
             if (deleted) {
                 Metrics.timer("embedding_delete", "type", resourceType)
                     .record(timeElapsed.toJavaDuration())
-                
-                // Produce harvest event on successful deletion
-                val dataType = harvestEventProducer.mapResourceTypeStringToDataType(resourceType)
-                harvestEventProducer.produceDeletionSuccessEvent(
+
+                if (resourceType != "invalid-type") {
+                    val dataType = harvestEventProducer.mapResourceTypeStringToDataType(resourceType)
+                    harvestEventProducer.produceDeletionSuccessEvent(
                     harvestRunId = harvestRunId,
                     uri = uri,
                     dataType = dataType,
                     fdkId = fdkId,
                     startTime = startTime,
                     endTime = endTime
-                )
+                    )
+                }
             }
         } catch (e: Exception) {
             val endTime = Instant.now()
@@ -144,7 +87,7 @@ open class KafkaRemovedEventCircuitBreaker(
             ).increment()
             
             // Produce harvest event on deletion failure
-            try {
+            if (resourceType != "invalid-type") try {
                 val dataType = harvestEventProducer.mapResourceTypeStringToDataType(resourceType)
                 harvestEventProducer.produceDeletionFailureEvent(
                     harvestRunId = harvestRunId,

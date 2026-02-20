@@ -1,6 +1,6 @@
 package no.digdir.fdk.search.llm.kafka
 
-import org.apache.avro.specific.SpecificRecord
+import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,7 +27,7 @@ class KafkaRemovedEventConsumer(
         containerFactory = "kafkaListenerContainerFactory",
         id = "remove"
     )
-    fun listen(record: ConsumerRecord<String, SpecificRecord>, ack: Acknowledgment) {
+    fun listen(record: ConsumerRecord<String, GenericRecord>, ack: Acknowledgment) {
         try {
             kafkaRemovedEventCircuitBreaker.process(record)
             ack.acknowledge()
