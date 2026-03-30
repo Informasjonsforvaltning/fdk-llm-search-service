@@ -21,7 +21,7 @@ management:
       application: fdk-llm-search-service
 spring:
   autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     properties:
@@ -50,19 +50,6 @@ spring:
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
 springdoc.api-docs.version: openapi_3_0
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 10
-        failureRateThreshold: 50
-        permittedNumberOfCallsInHalfOpenState: 3
-        waitDurationInOpenState: 60000
-        automaticTransitionFromOpenToHalfOpenEnabled: true
-    instances:
-      rdf-parse.baseConfig: default
-      remove.baseConfig: default
 ai:
   vertex:
     endpoint: ${AI_VERTEX_ENDPOINT}

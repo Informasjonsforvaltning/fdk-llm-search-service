@@ -13,20 +13,20 @@ import org.springframework.kafka.listener.ContainerProperties
 
 @EnableKafka
 @Configuration
-open class KafkaConsumerConfig {
+class KafkaConsumerConfig {
 
     @Bean
-    open fun kafkaListenerContainerFactory(
+    fun kafkaListenerContainerFactory(
         consumerFactory: ConsumerFactory<String, GenericRecord>
     ): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, GenericRecord>()
-        factory.consumerFactory = consumerFactory
+        factory.setConsumerFactory(consumerFactory)
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL_IMMEDIATE
         return factory
     }
 
     @Bean
-    open fun consumerFactory(
+    fun consumerFactory(
         @Value("\${spring.kafka.bootstrap-servers}") bootstrapServers: String,
         @Value("\${spring.kafka.properties.schema.registry.url}") schemaRegistryUrl: String
     ): ConsumerFactory<String, GenericRecord> {

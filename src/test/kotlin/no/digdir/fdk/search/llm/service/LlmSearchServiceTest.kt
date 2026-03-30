@@ -7,7 +7,7 @@ import no.digdir.fdk.search.llm.model.LlmSearchOperation
 import no.digdir.fdk.search.llm.model.SearchType
 import no.digdir.fdk.search.llm.model.TextEmbedding
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
-import org.junit.Assert.assertThrows
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import kotlin.test.assertEquals
