@@ -6,36 +6,36 @@ import io.swagger.v3.oas.annotations.media.Schema
     description = "A single search result hit containing resource information and relevance explanation"
 )
 data class LlmSearchHit(
-    @Schema(
+    @param:Schema(
         description = "Unique identifier of the resource",
         example = "12345"
     )
     val id : String,
-    
-    @Schema(
+
+    @param:Schema(
         description = "Title of the resource",
         example = "Befolkningsstatistikk"
     )
     val title : String,
-    
-    @Schema(
+
+    @param:Schema(
         description = "Explanation of why this resource matches the search query, formatted in Markdown",
         example = "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling."
     )
     val description : String,
-    
+
     @param:Schema(
         description = "Type of resource (e.g., 'dataset', 'dataservice')",
         example = "dataset"
     )
     val type : String,
-    
+
     @param:Schema(
         description = "Name of the organization that published the resource",
         example = "Statistisk sentralbyrå"
     )
     val publisher : String,
-    
+
     @param:Schema(
         description = "Unique identifier of the publishing organization",
         example = "991825827"

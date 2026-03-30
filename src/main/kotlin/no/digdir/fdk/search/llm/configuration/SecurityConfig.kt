@@ -11,12 +11,12 @@ import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
 
 @Configuration
-open class SecurityConfig(
-        @Value("\${application.cors.originPatterns}")
+class SecurityConfig(
+    @param:Value("\${application.cors.originPatterns}")
         val corsOriginPatterns: Array<String>
 ) {
     @Bean
-    open fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .cors { cors ->
                 cors.configurationSource { _ ->

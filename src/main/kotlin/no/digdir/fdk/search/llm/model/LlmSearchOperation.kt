@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema
     example = """{"query": "Finn datasett om befolkning og demografi i Norge", "type": "DATASET"}"""
 )
 data class LlmSearchOperation(
-    @Schema(
+    @param:Schema(
         description = "Natural language search query in Norwegian. Must be between 3 and 255 characters.",
         example = "Finn datasett om befolkning og demografi i Norge",
         minLength = 3,
@@ -15,8 +15,8 @@ data class LlmSearchOperation(
         required = true
     )
     val query : String,
-    
-    @Schema(
+
+    @param:Schema(
         description = "Resource type to filter search results. Defaults to DATASET if not specified. Use ALL to search across all resource types. Valid values: ALL, CONCEPT, DATASET, DATA_SERVICE, INFORMATION_MODEL, SERVICE, EVENT",
         example = "DATASET",
         allowableValues = ["ALL", "CONCEPT", "DATASET", "DATA_SERVICE", "INFORMATION_MODEL", "SERVICE", "EVENT"],

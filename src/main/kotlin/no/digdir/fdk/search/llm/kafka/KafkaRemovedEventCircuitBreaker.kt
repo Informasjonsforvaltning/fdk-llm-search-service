@@ -1,6 +1,6 @@
 package no.digdir.fdk.search.llm.kafka
 
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.micrometer.core.instrument.Metrics
 import no.digdir.fdk.search.llm.service.EmbeddingService
 import org.apache.avro.generic.GenericRecord
@@ -8,7 +8,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
 import kotlin.time.measureTimedValue
 import kotlin.time.toJavaDuration
@@ -16,8 +17,12 @@ import kotlin.time.toJavaDuration
 @Component
 open class KafkaRemovedEventCircuitBreaker(
     private val embeddingService: EmbeddingService,
-    private val harvestEventProducer: HarvestEventProducer
+    private val harvestEventProducer: HarvestEventProducer,
+    circuitBreakerRegistry: CircuitBreakerRegistry,
+    transactionManager: PlatformTransactionManager,
 ) {
+    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker("remove")
+    private val transactionTemplate = TransactionTemplate(transactionManager)
 
     private fun resourceTypeFromSchema(schemaName: String?): String = when (schemaName) {
         "no.fdk.dataset.DatasetEvent" -> "dataset"
@@ -35,9 +40,15 @@ open class KafkaRemovedEventCircuitBreaker(
         else -> false
     }
 
-    @CircuitBreaker(name = "remove")
-    @Transactional
     open fun process(record: ConsumerRecord<String, GenericRecord>) {
+        circuitBreaker.executeRunnable {
+            transactionTemplate.executeWithoutResult {
+                processInTransaction(record)
+            }
+        }
+    }
+
+    private fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("Received message - offset: " + record.offset())
 
         val event = record.value()

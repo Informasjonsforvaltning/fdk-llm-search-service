@@ -1,7 +1,7 @@
 package no.digdir.fdk.search.llm.kafka
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.micrometer.core.instrument.Metrics
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.service.EmbeddingService
@@ -11,7 +11,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
 import kotlin.time.measureTimedValue
 import kotlin.time.toJavaDuration
@@ -19,8 +20,12 @@ import kotlin.time.toJavaDuration
 @Component
 open class KafkaRdfParseEventCircuitBreaker(
     private val embeddingService: EmbeddingService,
-    private val harvestEventProducer: HarvestEventProducer
+    private val harvestEventProducer: HarvestEventProducer,
+    circuitBreakerRegistry: CircuitBreakerRegistry,
+    transactionManager: PlatformTransactionManager,
 ) {
+    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker("rdf-parse")
+    private val transactionTemplate = TransactionTemplate(transactionManager)
 
     private fun resourceTypeFromRecord(record: GenericRecord): RdfParseResourceType {
         val typeStr = (record.get("resourceType") ?: "").toString()
@@ -69,11 +74,15 @@ open class KafkaRdfParseEventCircuitBreaker(
         }
     }
 
-    @CircuitBreaker(name = "rdf-parse")
-    @Transactional
-    open fun process(
-        record: ConsumerRecord<String, GenericRecord>
-    ) {
+    open fun process(record: ConsumerRecord<String, GenericRecord>) {
+        circuitBreaker.executeRunnable {
+            transactionTemplate.executeWithoutResult {
+                processInTransaction(record)
+            }
+        }
+    }
+
+    private fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("CB Received message - offset: " + record.offset())
 
         val event = record.value()

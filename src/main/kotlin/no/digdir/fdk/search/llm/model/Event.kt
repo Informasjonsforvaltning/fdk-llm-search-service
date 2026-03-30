@@ -11,6 +11,6 @@ data class Event(
     val description: LocalizedStrings?,
     val harvest: HarvestMetadata?,
     val subject: List<String>?,
-    @JsonProperty("specialized_type") val specializedType: String?,
+    @param:JsonProperty("specialized_type") val specializedType: String?,
 )
 
