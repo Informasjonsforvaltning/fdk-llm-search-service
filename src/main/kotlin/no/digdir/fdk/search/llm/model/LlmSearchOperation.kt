@@ -23,5 +23,5 @@ data class LlmSearchOperation(
         required = false,
         defaultValue = "DATASET"
     )
-    val type : SearchType = SearchType.DATASET
+    val type : SearchType? = SearchType.DATASET
 )
