@@ -182,7 +182,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>1.12.2</version>
+            <version>1.13.0</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
