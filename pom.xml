@@ -44,7 +44,7 @@
         <kotlin.version>2.3.21</kotlin.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <avro.version>1.12.1</avro.version>
-        <confluent.version>8.2.0</confluent.version>
+        <confluent.version>8.2.1</confluent.version>
     </properties>
 
     <dependencies>
