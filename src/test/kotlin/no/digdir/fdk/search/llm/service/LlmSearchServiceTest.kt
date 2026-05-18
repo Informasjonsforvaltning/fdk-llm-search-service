@@ -3,6 +3,8 @@ package no.digdir.fdk.search.llm.service
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.digdir.fdk.search.llm.configuration.AiProperties
+import no.digdir.fdk.search.llm.configuration.SearchProperties
 import no.digdir.fdk.search.llm.model.LlmSearchOperation
 import no.digdir.fdk.search.llm.model.SearchType
 import no.digdir.fdk.search.llm.model.TextEmbedding
@@ -11,14 +13,22 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @ActiveProfiles("test")
 class LlmSearchServiceTest {
     private val vertexService = mockk<VertexService>()
     private val embeddingService = mockk<EmbeddingService>()
     private val searchQueryRepository = mockk<SearchQueryRepository>()
+    private val aiProperties = AiProperties(search = SearchProperties(numMatches = 10, simThreshold = 0.3f))
 
-    private val llmSearchService = LlmSearchService(vertexService, embeddingService, searchQueryRepository)
+    private val llmSearchService = LlmSearchService(vertexService, embeddingService, searchQueryRepository, aiProperties)
+
+    @Test
+    fun `prompt template is loaded from classpath resource`() {
+        assertTrue(llmSearchService.promptTemplate.contains("{{summaries}}"))
+        assertTrue(llmSearchService.promptTemplate.contains("{{user_query}}"))
+    }
 
     @Test
     fun `llm search should return three hits`() {

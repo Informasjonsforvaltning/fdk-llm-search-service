@@ -61,6 +61,9 @@ ai:
     topK: ${AI_VERTEX_TOP_K:1}
     topP: ${AI_VERTEX_TOP_P:0.8}
     temperature: ${AI_VERTEX_TEMPERATURE:0.0}
+  search:
+    numMatches: ${AI_SEARCH_NUM_MATCHES:10}
+    simThreshold: ${AI_SEARCH_SIM_THRESHOLD:0.3}
 application:
   prop: 1
   cors:

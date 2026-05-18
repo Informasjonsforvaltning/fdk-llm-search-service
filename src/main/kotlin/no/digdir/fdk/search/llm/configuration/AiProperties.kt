@@ -4,7 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("ai")
 data class AiProperties(
-    var vertex: VertexProperties? = null
+    var vertex: VertexProperties? = null,
+    var search: SearchProperties? = null,
 )
 
 data class VertexProperties(
@@ -15,4 +16,9 @@ data class VertexProperties(
     var topK: Int? = null,
     var topP: Double? = null,
     var temperature: Float? = null
+)
+
+data class SearchProperties(
+    var numMatches: Int = 10,
+    var simThreshold: Float = 0.3f,
 )
