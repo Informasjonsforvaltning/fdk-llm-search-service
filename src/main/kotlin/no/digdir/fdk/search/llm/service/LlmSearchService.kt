@@ -4,10 +4,13 @@ package no.digdir.fdk.search.llm.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import dev.langchain4j.model.input.PromptTemplate
+import no.digdir.fdk.search.llm.configuration.AiProperties
+import no.digdir.fdk.search.llm.configuration.SearchProperties
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Component
 
 
@@ -15,10 +18,14 @@ import org.springframework.stereotype.Component
 class LlmSearchService(
     private val vertexService: VertexService,
     private val embeddingService: EmbeddingService,
-    private val searchQueryRepository: SearchQueryRepository
+    private val searchQueryRepository: SearchQueryRepository,
+    private val aiProperties: AiProperties,
 ) {
     private val minQueryLength = 3
     private val maxQueryLength = 255
+
+    internal val promptTemplate: String =
+        ClassPathResource(PROMPT_RESOURCE_PATH).inputStream.bufferedReader().use { it.readText() }
 
     private fun validateQuery(query: String) {
         if (query.length < minQueryLength) {
@@ -42,10 +49,11 @@ class LlmSearchService(
 
         // Perform similarity search, filtered by resource type (defaults to DATASET, use ALL for all types)
         val searchType = if (searchOperation.type == SearchType.ALL) null else searchOperation.type
+        val search = aiProperties.search ?: SearchProperties()
         val embeddings = embeddingService.similaritySearch(
-            query, searchType, SIM_THRESHOLD, NUM_MATCHES)
+            query, searchType, search.simThreshold, search.numMatches)
 
-        val message = PromptTemplate.from(PROMPT_TEMPLATE).apply(
+        val message = PromptTemplate.from(promptTemplate).apply(
             mapOf(
                 "summaries" to objectMapper.writeValueAsString(embeddings),
                 "user_query" to query
@@ -99,31 +107,6 @@ class LlmSearchService(
 
         private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-        private const val NUM_MATCHES = 10
-        private const val SIM_THRESHOLD = 0.3f
-
-        private val PROMPT_TEMPLATE = """
-            You will be given a detailed summaries of different resources (datasets, concepts, data services, information models, services, and events) in norwegian as a JSON array.
-            The question is enclosed in double backticks(``).
-            Select all resources that are relevant to answer the question.
-            Prioritize resources with newer data when applicable.
-            Using those resource summaries, answer the question in as much detail as possible. 
-            Give your answer in Norwegian.
-            You should only use the information in the summaries.
-            Your answer should start with explaining if the question contains possible personal sensitive data 
-            (sensitive) and why each resource matches the question posed by the user (reason).
-            Format the result as JSON only using the following structure format the description in Markdown: 
-            ```json
-            { "sensitive": true/false, "hits": [ { "id": "", "name": "", "reason": "" } ] }
-            ```
-                                            
-            Summaries:
-            ```json
-            {{summaries}}
-            ```        
-                    
-            Question:
-            ``{{user_query}}``            
-            """.trimIndent()
+        private const val PROMPT_RESOURCE_PATH = "prompts/search-prompt.md"
     }
 }
