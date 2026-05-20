@@ -25,6 +25,7 @@
                 <message>
                     <fieldName>shortMessage</fieldName>
                 </message>
+                <mdc/>
                 <pattern>
                     <pattern>{ "message": "%exception%message", "serviceContext": { "service": "fdk-llm-search-service" } }</pattern>
                 </pattern>

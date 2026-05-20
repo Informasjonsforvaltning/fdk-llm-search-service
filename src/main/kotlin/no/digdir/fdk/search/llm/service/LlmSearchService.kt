@@ -3,29 +3,31 @@ package no.digdir.fdk.search.llm.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import dev.langchain4j.model.input.PromptTemplate
+import io.micrometer.core.instrument.DistributionSummary
+import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Tags
+import io.micrometer.core.instrument.Timer
 import no.digdir.fdk.search.llm.configuration.AiProperties
 import no.digdir.fdk.search.llm.configuration.SearchProperties
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.ClassPathResource
+import org.slf4j.MDC
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 
 @Component
 class LlmSearchService(
-    private val vertexService: VertexService,
+    private val searchAssistant: SearchAssistant,
     private val embeddingService: EmbeddingService,
     private val searchQueryRepository: SearchQueryRepository,
     private val aiProperties: AiProperties,
+    private val meterRegistry: MeterRegistry,
 ) {
     private val minQueryLength = 3
     private val maxQueryLength = 255
-
-    internal val promptTemplate: String =
-        ClassPathResource(PROMPT_RESOURCE_PATH).inputStream.bufferedReader().use { it.readText() }
 
     private fun validateQuery(query: String) {
         if (query.length < minQueryLength) {
@@ -44,34 +46,43 @@ class LlmSearchService(
 
         logger.debug("Search operation: {}", searchOperation)
 
-        // Escape special characters
-        val query = searchOperation.query.replace("`", "'")
+        val query = searchOperation.query
 
         // Perform similarity search, filtered by resource type (defaults to DATASET, use ALL for all types)
         val searchType = if (searchOperation.type == SearchType.ALL) null else searchOperation.type
         val search = aiProperties.search ?: SearchProperties()
+
+        val embeddingStart = System.nanoTime()
         val embeddings = embeddingService.similaritySearch(
             query, searchType, search.simThreshold, search.numMatches)
+        val embeddingNanos = System.nanoTime() - embeddingStart
 
-        val message = PromptTemplate.from(promptTemplate).apply(
-            mapOf(
-                "summaries" to objectMapper.writeValueAsString(embeddings),
-                "user_query" to query
-            )
-        ).text()
-
-        if(logger.isDebugEnabled) {
-            logger.debug("Chat message: {}", message)
+        var llmFailed = false
+        val llmStart = System.nanoTime()
+        val result = runCatching {
+            searchAssistant.answer(objectMapper.writeValueAsString(embeddings), query)
+        }.getOrElse { ex ->
+            llmFailed = true
+            logger.warn("Failed to obtain structured response from LLM", ex)
+            AIResult(false, emptyList())
         }
+        val llmNanos = System.nanoTime() - llmStart
 
-        // Generate AI response using LLM
-        val response = vertexService.chat(message)
-
-        logger.debug("AI Response: {}", response)
-        val result = parseAiResponse(response)
+        logger.debug("AI Result: {}", result)
 
         // Save search query
         searchQueryRepository.saveSearchQuery(query, embeddings.size, result.hits.size, result.sensitive)
+
+        recordTelemetry(
+            query = query,
+            searchType = searchOperation.type ?: SearchType.DATASET,
+            hitsEmbedding = embeddings.size,
+            hitsLlm = result.hits.size,
+            sensitive = result.sensitive,
+            llmFailed = llmFailed,
+            embeddingNanos = embeddingNanos,
+            llmNanos = llmNanos,
+        )
 
         return LlmSearchResult(
             hits = result.hits.map { hit ->
@@ -88,25 +99,75 @@ class LlmSearchService(
         )
     }
 
-    /**
-     * Parse AI response and extract search hits
-     */
-    private fun parseAiResponse(response: String): AIResult {
-        val jsonString = Regex("```json\\s+(.*?)\\s+```", RegexOption.DOT_MATCHES_ALL)
-            .find(response)
-            ?.groupValues
-            ?.get(1)
+    private fun recordTelemetry(
+        query: String,
+        searchType: SearchType,
+        hitsEmbedding: Int,
+        hitsLlm: Int,
+        sensitive: Boolean,
+        llmFailed: Boolean,
+        embeddingNanos: Long,
+        llmNanos: Long,
+    ) {
+        try {
+            val zeroHits = hitsLlm == 0
+            val tags = Tags.of(
+                "type", searchType.name,
+                "query", if (sensitive) "[REDACTED]" else query,
+                "zero_hits", zeroHits.toString(),
+                "llm_failed", llmFailed.toString(),
+                "sensitive", sensitive.toString(),
+            )
 
-        return jsonString?.let {
-            objectMapper.readValue(it, AIResult::class.java)
-        } ?: AIResult(false, emptyList())
+            meterRegistry.counter("fdk_llm_search_queries_total", tags).increment()
+
+            Timer.builder("fdk_llm_search_phase_duration")
+                .tag("phase", "embedding")
+                .register(meterRegistry)
+                .record(embeddingNanos, TimeUnit.NANOSECONDS)
+            Timer.builder("fdk_llm_search_phase_duration")
+                .tag("phase", "llm")
+                .register(meterRegistry)
+                .record(llmNanos, TimeUnit.NANOSECONDS)
+
+            DistributionSummary.builder("fdk_llm_search_hits")
+                .tag("stage", "embedding")
+                .register(meterRegistry)
+                .record(hitsEmbedding.toDouble())
+            DistributionSummary.builder("fdk_llm_search_hits")
+                .tag("stage", "llm")
+                .register(meterRegistry)
+                .record(hitsLlm.toDouble())
+
+            val embeddingMs = TimeUnit.NANOSECONDS.toMillis(embeddingNanos)
+            val llmMs = TimeUnit.NANOSECONDS.toMillis(llmNanos)
+            val mdc = mapOf(
+                "event" to "llm_search",
+                "query" to if (sensitive) "[REDACTED]" else query,
+                "query_length" to query.length.toString(),
+                "search_type" to searchType.name,
+                "hits_embedding" to hitsEmbedding.toString(),
+                "hits_llm" to hitsLlm.toString(),
+                "zero_hits" to zeroHits.toString(),
+                "sensitive" to sensitive.toString(),
+                "llm_failed" to llmFailed.toString(),
+                "embedding_ms" to embeddingMs.toString(),
+                "llm_ms" to llmMs.toString(),
+            )
+            mdc.forEach { (k, v) -> MDC.put(k, v) }
+            try {
+                logger.info("llm_search completed")
+            } finally {
+                mdc.keys.forEach { MDC.remove(it) }
+            }
+        } catch (ex: Exception) {
+            logger.warn("Failed to record search telemetry", ex)
+        }
     }
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(LlmSearchService::class.java)
 
         private val objectMapper: ObjectMapper = jacksonObjectMapper()
-
-        private const val PROMPT_RESOURCE_PATH = "prompts/search-prompt.md"
     }
 }
