@@ -70,7 +70,6 @@ class LlmSearchService(
 
         logger.debug("AI Result: {}", result)
 
-        // Save search query
         searchQueryRepository.saveSearchQuery(query, embeddings.size, result.hits.size, result.sensitive)
 
         recordTelemetry(
@@ -111,9 +110,10 @@ class LlmSearchService(
     ) {
         try {
             val zeroHits = hitsLlm == 0
+            val safeQuery = if (sensitive) "[REDACTED]" else query
             val tags = Tags.of(
                 "type", searchType.name,
-                "query", if (sensitive) "[REDACTED]" else query,
+                "query", safeQuery,
                 "zero_hits", zeroHits.toString(),
                 "llm_failed", llmFailed.toString(),
                 "sensitive", sensitive.toString(),
@@ -143,7 +143,7 @@ class LlmSearchService(
             val llmMs = TimeUnit.NANOSECONDS.toMillis(llmNanos)
             val mdc = mapOf(
                 "event" to "llm_search",
-                "query" to if (sensitive) "[REDACTED]" else query,
+                "query" to safeQuery,
                 "query_length" to query.length.toString(),
                 "search_type" to searchType.name,
                 "hits_embedding" to hitsEmbedding.toString(),
