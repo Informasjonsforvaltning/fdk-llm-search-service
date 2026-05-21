@@ -255,7 +255,6 @@ class LlmSearchServiceTest {
 
         val counter = meterRegistry.find("fdk_llm_search_queries_total")
             .tag("type", SearchType.DATASET.name)
-            .tag("query", "Tesla metric")
             .tag("zero_hits", "false")
             .tag("llm_failed", "false")
             .tag("sensitive", "false")
@@ -289,7 +288,6 @@ class LlmSearchServiceTest {
 
         val counter = meterRegistry.find("fdk_llm_search_queries_total")
             .tag("type", SearchType.DATASET.name)
-            .tag("query", "Tesla fail")
             .tag("zero_hits", "true")
             .tag("llm_failed", "true")
             .counter()
@@ -305,7 +303,6 @@ class LlmSearchServiceTest {
         llmSearchService.search(LlmSearchOperation("empty query"))
 
         val counter = meterRegistry.find("fdk_llm_search_queries_total")
-            .tag("query", "empty query")
             .tag("zero_hits", "true")
             .tag("llm_failed", "false")
             .counter()
@@ -313,7 +310,7 @@ class LlmSearchServiceTest {
     }
 
     @Test
-    fun `redacts query tag when result is sensitive`() {
+    fun `records sensitive=true tag when result is flagged sensitive`() {
         every { searchQueryRepository.saveSearchQuery("Personnummer 12345678901", any(), any(), true) } returns Unit
         every { searchAssistant.answer(any(), "Personnummer 12345678901") } returns AIResult(sensitive = true, hits = emptyList())
         every { embeddingService.similaritySearch("Personnummer 12345678901", SearchType.DATASET, 0.3f, 10) } returns emptyList()
@@ -321,7 +318,6 @@ class LlmSearchServiceTest {
         llmSearchService.search(LlmSearchOperation("Personnummer 12345678901"))
 
         val counter = meterRegistry.find("fdk_llm_search_queries_total")
-            .tag("query", "[REDACTED]")
             .tag("sensitive", "true")
             .counter()
         assertEquals(1.0, counter?.count())

@@ -15,6 +15,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 
@@ -113,7 +114,6 @@ class LlmSearchService(
             val safeQuery = if (sensitive) "[REDACTED]" else query
             val tags = Tags.of(
                 "type", searchType.name,
-                "query", safeQuery,
                 "zero_hits", zeroHits.toString(),
                 "llm_failed", llmFailed.toString(),
                 "sensitive", sensitive.toString(),
@@ -121,23 +121,11 @@ class LlmSearchService(
 
             meterRegistry.counter("fdk_llm_search_queries_total", tags).increment()
 
-            Timer.builder("fdk_llm_search_phase_duration")
-                .tag("phase", "embedding")
-                .register(meterRegistry)
-                .record(embeddingNanos, TimeUnit.NANOSECONDS)
-            Timer.builder("fdk_llm_search_phase_duration")
-                .tag("phase", "llm")
-                .register(meterRegistry)
-                .record(llmNanos, TimeUnit.NANOSECONDS)
+            recordPhaseTimer("embedding", embeddingNanos)
+            recordPhaseTimer("llm", llmNanos)
 
-            DistributionSummary.builder("fdk_llm_search_hits")
-                .tag("stage", "embedding")
-                .register(meterRegistry)
-                .record(hitsEmbedding.toDouble())
-            DistributionSummary.builder("fdk_llm_search_hits")
-                .tag("stage", "llm")
-                .register(meterRegistry)
-                .record(hitsLlm.toDouble())
+            recordHits("embedding", hitsEmbedding)
+            recordHits("llm", hitsLlm)
 
             val embeddingMs = TimeUnit.NANOSECONDS.toMillis(embeddingNanos)
             val llmMs = TimeUnit.NANOSECONDS.toMillis(llmNanos)
@@ -163,6 +151,30 @@ class LlmSearchService(
         } catch (ex: Exception) {
             logger.warn("Failed to record search telemetry", ex)
         }
+    }
+
+    private fun recordPhaseTimer(phase: String, nanos: Long) {
+        Timer.builder("fdk_llm_search_phase_duration")
+            .tag("phase", phase)
+            .publishPercentileHistogram()
+            .serviceLevelObjectives(
+                Duration.ofMillis(500),
+                Duration.ofSeconds(1),
+                Duration.ofSeconds(2),
+                Duration.ofSeconds(5),
+                Duration.ofSeconds(10),
+            )
+            .register(meterRegistry)
+            .record(nanos, TimeUnit.NANOSECONDS)
+    }
+
+    private fun recordHits(stage: String, hits: Int) {
+        DistributionSummary.builder("fdk_llm_search_hits")
+            .tag("stage", stage)
+            .publishPercentileHistogram()
+            .serviceLevelObjectives(0.5, 1.0, 3.0, 5.0, 10.0)
+            .register(meterRegistry)
+            .record(hits.toDouble())
     }
 
     companion object {
