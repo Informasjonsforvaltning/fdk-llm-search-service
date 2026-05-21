@@ -1,9 +1,15 @@
 package no.digdir.fdk.search.llm.service
 
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.slf4j.LoggerFactory
 import no.digdir.fdk.search.llm.configuration.AiProperties
 import no.digdir.fdk.search.llm.configuration.SearchProperties
 import no.digdir.fdk.search.llm.model.AIResult
@@ -26,6 +32,24 @@ class LlmSearchServiceTest {
     private val meterRegistry = SimpleMeterRegistry()
 
     private val llmSearchService = LlmSearchService(searchAssistant, embeddingService, searchQueryRepository, aiProperties, meterRegistry)
+
+    private val logAppender = ListAppender<ILoggingEvent>()
+    private val serviceLogger = LoggerFactory.getLogger(LlmSearchService::class.java) as Logger
+
+    @BeforeEach
+    fun attachAppender() {
+        logAppender.start()
+        serviceLogger.addAppender(logAppender)
+    }
+
+    @AfterEach
+    fun detachAppender() {
+        serviceLogger.detachAppender(logAppender)
+        logAppender.list.clear()
+    }
+
+    private fun llmSearchEvent(): ILoggingEvent? =
+        logAppender.list.find { it.message == "llm_search completed" }
 
     @Test
     fun `llm search should return three hits`() {
@@ -347,5 +371,62 @@ class LlmSearchServiceTest {
         verify {
             embeddingService.similaritySearch("all types search", null, 0.3f, 10)
         }
+    }
+
+    @Test
+    fun `logs embedding_hits when llm returns zero hits but embeddings exist`() {
+        every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
+        every { searchAssistant.answer(any(), "Noe som ikke finnes") } returns AIResult(false, emptyList())
+        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10) } returns listOf(
+            TextEmbedding("12345", "Kjøretøystatistikk innhold", false, 1612137600000, mapOf(
+                "publisherId" to "1234",
+                "type" to SearchType.DATASET.name)),
+            TextEmbedding("12346", "Teknisk kjøretøy innhold", false, 1612137600000, mapOf(
+                "publisherId" to "5678",
+                "type" to SearchType.DATASET.name))
+        )
+
+        llmSearchService.search(LlmSearchOperation("Noe som ikke finnes"))
+
+        val embeddingHits = llmSearchEvent()?.mdcPropertyMap?.get("embedding_hits")
+        assertEquals(
+            """[{"id":"12345","type":"DATASET","publisherId":"1234","content":"Kjøretøystatistikk innhold"},""" +
+            """{"id":"12346","type":"DATASET","publisherId":"5678","content":"Teknisk kjøretøy innhold"}]""",
+            embeddingHits
+        )
+    }
+
+    @Test
+    fun `omits embedding_hits when llm returns hits`() {
+        val aiResult = AIResult(
+            sensitive = false,
+            hits = listOf(AIResultHit("12345", "Kjøretøystatistikk", "Relevant"))
+        )
+        every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit
+        every { searchAssistant.answer(any(), "Tesla") } returns aiResult
+        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10) } returns listOf(
+            TextEmbedding("12345", "content", false, 1612137600000, mapOf(
+                "publisherId" to "1234",
+                "type" to SearchType.DATASET.name))
+        )
+
+        llmSearchService.search(LlmSearchOperation("Tesla"))
+
+        assertEquals(null, llmSearchEvent()?.mdcPropertyMap?.get("embedding_hits"))
+    }
+
+    @Test
+    fun `omits embedding_hits when query is sensitive`() {
+        every { searchQueryRepository.saveSearchQuery("Personnummer 12345678901", any(), any(), true) } returns Unit
+        every { searchAssistant.answer(any(), "Personnummer 12345678901") } returns AIResult(sensitive = true, hits = emptyList())
+        every { embeddingService.similaritySearch("Personnummer 12345678901", SearchType.DATASET, 0.3f, 10) } returns listOf(
+            TextEmbedding("12345", "content", false, 1612137600000, mapOf(
+                "publisherId" to "1234",
+                "type" to SearchType.DATASET.name))
+        )
+
+        llmSearchService.search(LlmSearchOperation("Personnummer 12345678901"))
+
+        assertEquals(null, llmSearchEvent()?.mdcPropertyMap?.get("embedding_hits"))
     }
 }

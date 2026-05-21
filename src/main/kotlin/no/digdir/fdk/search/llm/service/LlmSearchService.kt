@@ -76,7 +76,7 @@ class LlmSearchService(
         recordTelemetry(
             query = query,
             searchType = searchOperation.type ?: SearchType.DATASET,
-            hitsEmbedding = embeddings.size,
+            embeddings = embeddings,
             hitsLlm = result.hits.size,
             sensitive = result.sensitive,
             llmFailed = llmFailed,
@@ -102,7 +102,7 @@ class LlmSearchService(
     private fun recordTelemetry(
         query: String,
         searchType: SearchType,
-        hitsEmbedding: Int,
+        embeddings: List<TextEmbedding>,
         hitsLlm: Int,
         sensitive: Boolean,
         llmFailed: Boolean,
@@ -110,6 +110,7 @@ class LlmSearchService(
         llmNanos: Long,
     ) {
         try {
+            val hitsEmbedding = embeddings.size
             val zeroHits = hitsLlm == 0
             val safeQuery = if (sensitive) "[REDACTED]" else query
             val tags = Tags.of(
@@ -129,7 +130,7 @@ class LlmSearchService(
 
             val embeddingMs = TimeUnit.NANOSECONDS.toMillis(embeddingNanos)
             val llmMs = TimeUnit.NANOSECONDS.toMillis(llmNanos)
-            val mdc = mapOf(
+            val mdc = mutableMapOf(
                 "event" to "llm_search",
                 "query" to safeQuery,
                 "query_length" to query.length.toString(),
@@ -142,6 +143,9 @@ class LlmSearchService(
                 "embedding_ms" to embeddingMs.toString(),
                 "llm_ms" to llmMs.toString(),
             )
+            if (zeroHits && hitsEmbedding > 0 && !sensitive) {
+                mdc["embedding_hits"] = serializeEmbeddingHits(embeddings)
+            }
             mdc.forEach { (k, v) -> MDC.put(k, v) }
             try {
                 logger.info("llm_search completed")
@@ -176,6 +180,18 @@ class LlmSearchService(
             .register(meterRegistry)
             .record(hits.toDouble())
     }
+
+    private fun serializeEmbeddingHits(embeddings: List<TextEmbedding>): String =
+        objectMapper.writeValueAsString(
+            embeddings.map { e ->
+                mapOf(
+                    "id" to e.id,
+                    "type" to e.metadata?.get("type"),
+                    "publisherId" to e.metadata?.get("publisherId"),
+                    "content" to e.content,
+                )
+            }
+        )
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(LlmSearchService::class.java)
