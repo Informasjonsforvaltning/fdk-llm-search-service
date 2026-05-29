@@ -17,6 +17,8 @@ class LlmConfig {
             .project(aiProperties.vertex?.project)
             .location(aiProperties.vertex?.location)
             .temperature(aiProperties.vertex?.temperature)
+            .maxOutputTokens(aiProperties.vertex?.maxOutputTokens)
+            .topP(aiProperties.vertex?.topP)
             .modelName(aiProperties.vertex?.llmModelName)
             .responseMimeType("application/json")
             .supportedCapabilities(Capability.RESPONSE_FORMAT_JSON_SCHEMA)

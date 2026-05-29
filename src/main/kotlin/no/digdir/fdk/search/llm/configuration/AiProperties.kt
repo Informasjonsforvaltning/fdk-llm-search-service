@@ -15,7 +15,6 @@ data class VertexProperties(
     var llmModelName: String? = null,
     var embeddingModelName: String? = null,
     var maxOutputTokens: Int? = null,
-    var topK: Int? = null,
     var topP: Double? = null,
     var temperature: Float? = null
 )
