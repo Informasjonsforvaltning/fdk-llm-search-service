@@ -15,19 +15,11 @@ open class EmbeddingService(
     private val vertexService: VertexService,
     private val embeddingRepository: EmbeddingRepository
 ) {
-    companion object {
-        private val logger: Logger = LoggerFactory.getLogger(EmbeddingService::class.java)
-    }
-
     /**
      * Store text embedding in the database as pgvector
      */
     open fun storeDatasetEmbedding(fdkId: String, dataset: Dataset, timestamp: Long) {
-        // Check timestamp first to avoid expensive embedding generation for outdated messages
-        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
-            logger.debug("Skipped saving embedding for dataset {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
-            return
-        }
+        if (!shouldProcess(fdkId, timestamp, "dataset")) return
 
         val themes =
             ((dataset.theme?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
@@ -35,23 +27,8 @@ open class EmbeddingService(
 
         val formats = dataset.distribution?.flatMap { it.fdkFormat?.mapNotNull { format -> format.code }?.toSet() ?: emptySet() } ?: emptySet()
         val keywords = (dataset.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
-
-        val issuedAndPeriodicity = if (dataset.issued != null || dataset.accrualPeriodicity?.prefLabel?.valueByPriority() != null) {
-            val dt = dataset.issued?.let { issued ->
-                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-
-                runCatching {
-                    LocalDateTime.parse(issued).format(formatter)
-                }.getOrElse {
-                    runCatching { LocalDate.parse(issued).format(formatter) }.getOrNull()
-                }
-            }
-            val periodicity = dataset.accrualPeriodicity?.prefLabel?.valueByPriority()
-            "Datasettet ${ if (dt != null) "ble utgitt $dt" else "" }" +
-                (if(dt != null && periodicity != null) " og " else "") +
-                (if(periodicity != null) "oppdateres $periodicity" else "") +
-                "."
-        } else ""
+        val issuedAndPeriodicity = formatDatasetIssuedAndPeriodicity(dataset)
+        val temporalSummary = formatTemporalRanges(dataset.temporal)
 
         val summary = """
             Dette datasettet, med id '${fdkId}' og navn '${dataset.title?.valueByPriority()}' er utgitt av '${dataset.publisher?.prefLabel?.valueByPriority()}'.
@@ -64,33 +41,27 @@ open class EmbeddingService(
             Datasettet har ${dataset.distribution?.size ?: 0} distribusjoner${ if (formats.isNotEmpty()) " og tilbyr data på formatene ${formats.joinToString(", ")}" else ""}.
             ${ if (themes.isNotEmpty()) "Temaene for datasettet er: ${themes.joinToString(", ")}." else ""}
             ${ if (keywords.isNotEmpty()) "Nøkkelordene for datasettet er: ${keywords.joinToString(", ")}." else ""}
-            ${ if (!dataset.temporal.isNullOrEmpty()) {
-                    "Dataen er tidsmessig begrenset: ${dataset.temporal.joinToString(", ") {
-                        when {
-                            it.startDate != null && it.endDate != null -> "${it.startDate} til ${it.endDate}"
-                            it.startDate != null -> "fra ${it.startDate}"
-                            it.endDate != null -> "til ${it.endDate}"
-                            else -> ""
-                        }}}."} else { "" } }
+            $temporalSummary
         """.trimIndent()
 
-        embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
-            "type" to SearchType.DATASET.name,
-            "title" to dataset.title?.valueByPriority(),
-            "publisher" to dataset.publisher?.prefLabel?.valueByPriority(),
-            "publisherId" to dataset.publisher?.id
-        ))
+        saveEmbedding(
+            fdkId,
+            summary,
+            timestamp,
+            buildMetadata(
+                SearchType.DATASET,
+                dataset.title?.valueByPriority(),
+                dataset.publisher?.prefLabel?.valueByPriority(),
+                dataset.publisher?.id,
+            ),
+        )
     }
 
     /**
      * Store text embedding for Concept
      */
     open fun storeConceptEmbedding(fdkId: String, concept: Concept, timestamp: Long) {
-        // Check timestamp first to avoid expensive embedding generation for outdated messages
-        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
-            logger.debug("Skipped saving embedding for concept {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
-            return
-        }
+        if (!shouldProcess(fdkId, timestamp, "concept")) return
 
         val keywords = ((concept.altLabel?.mapNotNull { it.valueByPriority() } ?: emptyList()) +
                 (concept.hiddenLabel?.mapNotNull { it.valueByPriority() } ?: emptyList())).toSet()
@@ -104,23 +75,24 @@ open class EmbeddingService(
             ${ if (keywords.isNotEmpty()) "Alternative navn for konseptet er: ${keywords.joinToString(", ")}." else ""}
         """.trimIndent()
 
-        embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
-            "type" to SearchType.CONCEPT.name,
-            "title" to concept.prefLabel?.valueByPriority(),
-            "publisher" to concept.publisher?.prefLabel?.valueByPriority(),
-            "publisherId" to concept.publisher?.id
-        ))
+        saveEmbedding(
+            fdkId,
+            summary,
+            timestamp,
+            buildMetadata(
+                SearchType.CONCEPT,
+                concept.prefLabel?.valueByPriority(),
+                concept.publisher?.prefLabel?.valueByPriority(),
+                concept.publisher?.id,
+            ),
+        )
     }
 
     /**
      * Store text embedding for DataService
      */
     open fun storeDataServiceEmbedding(fdkId: String, dataService: DataService, timestamp: Long) {
-        // Check timestamp first to avoid expensive embedding generation for outdated messages
-        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
-            logger.debug("Skipped saving embedding for data service {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
-            return
-        }
+        if (!shouldProcess(fdkId, timestamp, "data service")) return
 
         val themes =
             ((dataService.theme?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
@@ -142,23 +114,24 @@ open class EmbeddingService(
             ${ if (!dataService.servesDataset.isNullOrEmpty()) "Datatjenesten betjener ${dataService.servesDataset.size} datasett." else ""}
         """.trimIndent()
 
-        embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
-            "type" to SearchType.DATA_SERVICE.name,
-            "title" to dataService.title?.valueByPriority(),
-            "publisher" to dataService.publisher?.prefLabel?.valueByPriority(),
-            "publisherId" to dataService.publisher?.id
-        ))
+        saveEmbedding(
+            fdkId,
+            summary,
+            timestamp,
+            buildMetadata(
+                SearchType.DATA_SERVICE,
+                dataService.title?.valueByPriority(),
+                dataService.publisher?.prefLabel?.valueByPriority(),
+                dataService.publisher?.id,
+            ),
+        )
     }
 
     /**
      * Store text embedding for InformationModel
      */
     open fun storeInformationModelEmbedding(fdkId: String, informationModel: InformationModel, timestamp: Long) {
-        // Check timestamp first to avoid expensive embedding generation for outdated messages
-        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
-            logger.debug("Skipped saving embedding for information model {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
-            return
-        }
+        if (!shouldProcess(fdkId, timestamp, "information model")) return
 
         val themes =
             ((informationModel.theme?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
@@ -178,23 +151,24 @@ open class EmbeddingService(
             ${ if (!informationModel.subjects.isNullOrEmpty()) "Informasjonsmodellen omhandler emnene: ${informationModel.subjects.joinToString(", ")}." else ""}
         """.trimIndent()
 
-        embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
-            "type" to SearchType.INFORMATION_MODEL.name,
-            "title" to informationModel.title?.valueByPriority(),
-            "publisher" to informationModel.publisher?.prefLabel?.valueByPriority(),
-            "publisherId" to informationModel.publisher?.id
-        ))
+        saveEmbedding(
+            fdkId,
+            summary,
+            timestamp,
+            buildMetadata(
+                SearchType.INFORMATION_MODEL,
+                informationModel.title?.valueByPriority(),
+                informationModel.publisher?.prefLabel?.valueByPriority(),
+                informationModel.publisher?.id,
+            ),
+        )
     }
 
     /**
      * Store text embedding for Service
      */
     open fun storeServiceEmbedding(fdkId: String, service: ServiceResource, timestamp: Long) {
-        // Check timestamp first to avoid expensive embedding generation for outdated messages
-        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
-            logger.debug("Skipped saving embedding for service {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
-            return
-        }
+        if (!shouldProcess(fdkId, timestamp, "service")) return
 
         val themes =
             ((service.euDataThemes?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
@@ -216,25 +190,26 @@ open class EmbeddingService(
             ${ if (keywords.isNotEmpty()) "Nøkkelordene for tjenesten er: ${keywords.joinToString(", ")}." else ""}
         """.trimIndent()
 
-        embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
-            "type" to SearchType.SERVICE.name,
-            "title" to service.title?.valueByPriority(),
-            "publisher" to service.catalog?.publisher?.prefLabel?.valueByPriority(),
-            "publisherId" to service.catalog?.publisher?.id
-        ))
+        saveEmbedding(
+            fdkId,
+            summary,
+            timestamp,
+            buildMetadata(
+                SearchType.SERVICE,
+                service.title?.valueByPriority(),
+                service.catalog?.publisher?.prefLabel?.valueByPriority(),
+                service.catalog?.publisher?.id,
+            ),
+        )
     }
 
     /**
      * Store text embedding for Event
      */
     open fun storeEventEmbedding(fdkId: String, event: Event, timestamp: Long) {
-        // Check timestamp first to avoid expensive embedding generation for outdated messages
-        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
-            logger.debug("Skipped saving embedding for event {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
-            return
-        }
+        if (!shouldProcess(fdkId, timestamp, "event")) return
 
-        val specializedType = event.specializedType?.let { 
+        val specializedType = event.specializedType?.let {
             when (it) {
                 "LIFE_EVENT" -> "livshendelse"
                 "BUSINESS_EVENT" -> "virksomhetshendelse"
@@ -252,12 +227,17 @@ open class EmbeddingService(
             ${ if (!event.subject.isNullOrEmpty()) "Hendelsen omhandler emnene: ${event.subject.joinToString(", ")}." else ""}
         """.trimIndent()
 
-        embeddingRepository.saveEmbedding(fdkId, summary, vertexService.embed(summary).vector(), timestamp, mapOf(
-            "type" to SearchType.EVENT.name,
-            "title" to event.title?.valueByPriority(),
-            "publisher" to event.catalog?.publisher?.prefLabel?.valueByPriority(),
-            "publisherId" to event.catalog?.publisher?.id
-        ))
+        saveEmbedding(
+            fdkId,
+            summary,
+            timestamp,
+            buildMetadata(
+                SearchType.EVENT,
+                event.title?.valueByPriority(),
+                event.catalog?.publisher?.prefLabel?.valueByPriority(),
+                event.catalog?.publisher?.id,
+            ),
+        )
     }
 
     /**
@@ -272,7 +252,7 @@ open class EmbeddingService(
     /**
      * Mark embedding as deleted by id
      * Only processes if the message timestamp is newer than the existing embedding timestamp.
-     * 
+     *
      * @return true if the embedding was marked as deleted, false if skipped due to older timestamp
      */
     fun markDeletedByIdAndBeforeTimestamp(id: String, timestamp: Long): Boolean {
@@ -281,5 +261,85 @@ open class EmbeddingService(
             logger.debug("Skipped marking embedding as deleted for {} - message timestamp {} is not newer than existing embedding", id, timestamp)
         }
         return deleted
+    }
+
+    private fun shouldProcess(fdkId: String, timestamp: Long, resourceLabel: String): Boolean {
+        if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
+            logger.debug(
+                "Skipped saving embedding for {} {} - message timestamp {} is not newer than existing embedding",
+                resourceLabel,
+                fdkId,
+                timestamp,
+            )
+            return false
+        }
+        return true
+    }
+
+    private fun buildMetadata(
+        type: SearchType,
+        title: String?,
+        publisherLabel: String?,
+        publisherId: String?,
+    ): Map<String, String?> = mapOf(
+        "type" to type.name,
+        "title" to title,
+        "publisher" to publisherLabel,
+        "publisherId" to publisherId,
+    )
+
+    private fun saveEmbedding(
+        fdkId: String,
+        summary: String,
+        timestamp: Long,
+        metadata: Map<String, String?>,
+    ) {
+        embeddingRepository.saveEmbedding(
+            fdkId,
+            summary,
+            vertexService.embed(summary).vector(),
+            timestamp,
+            metadata,
+        )
+    }
+
+    private fun formatDatasetIssuedAndPeriodicity(dataset: Dataset): String {
+        if (dataset.issued == null && dataset.accrualPeriodicity?.prefLabel?.valueByPriority() == null) {
+            return ""
+        }
+
+        val issuedDate = dataset.issued?.let(::formatIssuedDate)
+        val periodicity = dataset.accrualPeriodicity?.prefLabel?.valueByPriority()
+        return "Datasettet ${ if (issuedDate != null) "ble utgitt $issuedDate" else "" }" +
+            (if (issuedDate != null && periodicity != null) " og " else "") +
+            (if (periodicity != null) "oppdateres $periodicity" else "") +
+            "."
+    }
+
+    private fun formatIssuedDate(issued: String): String? {
+        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        return runCatching {
+            LocalDateTime.parse(issued).format(formatter)
+        }.getOrElse {
+            runCatching { LocalDate.parse(issued).format(formatter) }.getOrNull()
+        }
+    }
+
+    private fun formatTemporalRanges(temporal: List<Temporal>?): String {
+        if (temporal.isNullOrEmpty()) return ""
+
+        val ranges = temporal.joinToString(", ") { range ->
+            when {
+                range.startDate != null && range.endDate != null -> "${range.startDate} til ${range.endDate}"
+                range.startDate != null -> "fra ${range.startDate}"
+                range.endDate != null -> "til ${range.endDate}"
+                else -> ""
+            }
+        }
+        return "Dataen er tidsmessig begrenset: $ranges."
+    }
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(EmbeddingService::class.java)
     }
 }
