@@ -42,34 +42,33 @@ open class KafkaRdfParseEventCircuitBreaker(
     }
 
     private fun storeEmbedding(record: GenericRecord, resourceType: RdfParseResourceType) {
-        val mapper = jacksonObjectMapper()
         val fdkId = (record.get("fdkId") ?: "").toString()
         val data = (record.get("data") ?: "").toString()
         val timestamp = runCatching { (record.get("timestamp") as? Number)?.toLong() }.getOrNull() ?: 0L
 
         when (resourceType) {
             RdfParseResourceType.DATASET -> {
-                val dataset = mapper.readValue(data, Dataset::class.java)
+                val dataset = objectMapper.readValue(data, Dataset::class.java)
                 embeddingService.storeDatasetEmbedding(fdkId, dataset, timestamp)
             }
             RdfParseResourceType.CONCEPT -> {
-                val concept = mapper.readValue(data, Concept::class.java)
+                val concept = objectMapper.readValue(data, Concept::class.java)
                 embeddingService.storeConceptEmbedding(fdkId, concept, timestamp)
             }
             RdfParseResourceType.DATA_SERVICE -> {
-                val dataService = mapper.readValue(data, DataService::class.java)
+                val dataService = objectMapper.readValue(data, DataService::class.java)
                 embeddingService.storeDataServiceEmbedding(fdkId, dataService, timestamp)
             }
             RdfParseResourceType.INFORMATION_MODEL -> {
-                val informationModel = mapper.readValue(data, InformationModel::class.java)
+                val informationModel = objectMapper.readValue(data, InformationModel::class.java)
                 embeddingService.storeInformationModelEmbedding(fdkId, informationModel, timestamp)
             }
             RdfParseResourceType.SERVICE -> {
-                val serviceModel = mapper.readValue(data, ServiceResource::class.java)
+                val serviceModel = objectMapper.readValue(data, ServiceResource::class.java)
                 embeddingService.storeServiceEmbedding(fdkId, serviceModel, timestamp)
             }
             RdfParseResourceType.EVENT -> {
-                val eventModel = mapper.readValue(data, Event::class.java)
+                val eventModel = objectMapper.readValue(data, Event::class.java)
                 embeddingService.storeEventEmbedding(fdkId, eventModel, timestamp)
             }
         }
@@ -127,5 +126,6 @@ open class KafkaRdfParseEventCircuitBreaker(
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(KafkaRdfParseEventCircuitBreaker::class.java)
+        private val objectMapper = jacksonObjectMapper()
     }
 }
