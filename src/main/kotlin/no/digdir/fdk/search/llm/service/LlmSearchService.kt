@@ -58,15 +58,16 @@ class LlmSearchService(
             query, searchType, search.simThreshold, search.numMatches)
         val embeddingNanos = System.nanoTime() - embeddingStart
 
-        var llmFailed = false
         val llmStart = System.nanoTime()
-        val result = runCatching {
+        val (result, llmFailed) = runCatching {
             searchAssistant.answer(objectMapper.writeValueAsString(embeddings), query)
-        }.getOrElse { ex ->
-            llmFailed = true
-            logger.warn("Failed to obtain structured response from LLM", ex)
-            AIResult(false, emptyList())
-        }
+        }.fold(
+            onSuccess = { aiResult -> aiResult to false },
+            onFailure = { ex ->
+                logger.warn("Failed to obtain structured response from LLM", ex)
+                AIResult(false, emptyList()) to true
+            },
+        )
         val llmNanos = System.nanoTime() - llmStart
 
         logger.debug("AI Result: {}", result)
@@ -112,48 +113,92 @@ class LlmSearchService(
         try {
             val hitsEmbedding = embeddings.size
             val zeroHits = hitsLlm == 0
-            val safeQuery = if (sensitive) "[REDACTED]" else query
-            val tags = Tags.of(
-                "type", searchType.name,
-                "zero_hits", zeroHits.toString(),
-                "llm_failed", llmFailed.toString(),
-                "sensitive", sensitive.toString(),
+
+            recordSearchMetrics(
+                searchType = searchType,
+                hitsEmbedding = hitsEmbedding,
+                hitsLlm = hitsLlm,
+                zeroHits = zeroHits,
+                sensitive = sensitive,
+                llmFailed = llmFailed,
+                embeddingNanos = embeddingNanos,
+                llmNanos = llmNanos,
             )
-
-            meterRegistry.counter("fdk_llm_search_queries_total", tags).increment()
-
-            recordPhaseTimer("embedding", embeddingNanos)
-            recordPhaseTimer("llm", llmNanos)
-
-            recordHits("embedding", hitsEmbedding)
-            recordHits("llm", hitsLlm)
-
-            val embeddingMs = TimeUnit.NANOSECONDS.toMillis(embeddingNanos)
-            val llmMs = TimeUnit.NANOSECONDS.toMillis(llmNanos)
-            val mdc = mutableMapOf(
-                "event" to "llm_search",
-                "query" to safeQuery,
-                "query_length" to query.length.toString(),
-                "search_type" to searchType.name,
-                "hits_embedding" to hitsEmbedding.toString(),
-                "hits_llm" to hitsLlm.toString(),
-                "zero_hits" to zeroHits.toString(),
-                "sensitive" to sensitive.toString(),
-                "llm_failed" to llmFailed.toString(),
-                "embedding_ms" to embeddingMs.toString(),
-                "llm_ms" to llmMs.toString(),
+            logSearchCompleted(
+                query = query,
+                searchType = searchType,
+                embeddings = embeddings,
+                hitsEmbedding = hitsEmbedding,
+                hitsLlm = hitsLlm,
+                zeroHits = zeroHits,
+                sensitive = sensitive,
+                llmFailed = llmFailed,
+                embeddingNanos = embeddingNanos,
+                llmNanos = llmNanos,
             )
-            if (zeroHits && hitsEmbedding > 0 && !sensitive) {
-                mdc["embedding_hits"] = serializeEmbeddingHits(embeddings)
-            }
-            mdc.forEach { (k, v) -> MDC.put(k, v) }
-            try {
-                logger.info("llm_search completed")
-            } finally {
-                mdc.keys.forEach { MDC.remove(it) }
-            }
         } catch (ex: Exception) {
             logger.warn("Failed to record search telemetry", ex)
+        }
+    }
+
+    private fun recordSearchMetrics(
+        searchType: SearchType,
+        hitsEmbedding: Int,
+        hitsLlm: Int,
+        zeroHits: Boolean,
+        sensitive: Boolean,
+        llmFailed: Boolean,
+        embeddingNanos: Long,
+        llmNanos: Long,
+    ) {
+        val tags = Tags.of(
+            "type", searchType.name,
+            "zero_hits", zeroHits.toString(),
+            "llm_failed", llmFailed.toString(),
+            "sensitive", sensitive.toString(),
+        )
+
+        meterRegistry.counter("fdk_llm_search_queries_total", tags).increment()
+        recordPhaseTimer("embedding", embeddingNanos)
+        recordPhaseTimer("llm", llmNanos)
+        recordHits("embedding", hitsEmbedding)
+        recordHits("llm", hitsLlm)
+    }
+
+    private fun logSearchCompleted(
+        query: String,
+        searchType: SearchType,
+        embeddings: List<TextEmbedding>,
+        hitsEmbedding: Int,
+        hitsLlm: Int,
+        zeroHits: Boolean,
+        sensitive: Boolean,
+        llmFailed: Boolean,
+        embeddingNanos: Long,
+        llmNanos: Long,
+    ) {
+        val safeQuery = if (sensitive) "[REDACTED]" else query
+        val mdc = mutableMapOf(
+            "event" to "llm_search",
+            "query" to safeQuery,
+            "query_length" to query.length.toString(),
+            "search_type" to searchType.name,
+            "hits_embedding" to hitsEmbedding.toString(),
+            "hits_llm" to hitsLlm.toString(),
+            "zero_hits" to zeroHits.toString(),
+            "sensitive" to sensitive.toString(),
+            "llm_failed" to llmFailed.toString(),
+            "embedding_ms" to TimeUnit.NANOSECONDS.toMillis(embeddingNanos).toString(),
+            "llm_ms" to TimeUnit.NANOSECONDS.toMillis(llmNanos).toString(),
+        )
+        if (zeroHits && hitsEmbedding > 0 && !sensitive) {
+            mdc["embedding_hits"] = serializeEmbeddingHits(embeddings)
+        }
+        mdc.forEach { (k, v) -> MDC.put(k, v) }
+        try {
+            logger.info("llm_search completed")
+        } finally {
+            mdc.keys.forEach { MDC.remove(it) }
         }
     }
 
