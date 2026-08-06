@@ -11,7 +11,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
 import kotlin.time.measureTimedValue
 import kotlin.time.toJavaDuration
@@ -22,10 +21,11 @@ open class KafkaRemovedEventCircuitBreaker(
     private val harvestEventProducer: HarvestEventProducer,
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
+) : AbstractKafkaCircuitBreaker(
+    circuitBreakerRegistry,
+    transactionManager,
+    CircuitBreakerNames.REMOVE,
 ) {
-    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.REMOVE)
-    private val transactionTemplate = TransactionTemplate(transactionManager)
-
     private fun resourceTypeFromSchema(schemaName: String?): RdfParseResourceType? = when (schemaName) {
         "no.fdk.dataset.DatasetEvent" -> RdfParseResourceType.DATASET
         "no.fdk.dataservice.DataServiceEvent" -> RdfParseResourceType.DATA_SERVICE
@@ -42,15 +42,7 @@ open class KafkaRemovedEventCircuitBreaker(
         else -> false
     }
 
-    open fun process(record: ConsumerRecord<String, GenericRecord>) {
-        circuitBreaker.executeRunnable {
-            transactionTemplate.executeWithoutResult {
-                processInTransaction(record)
-            }
-        }
-    }
-
-    private fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
+    override fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("Received message - offset: " + record.offset())
 
         val event = record.value()

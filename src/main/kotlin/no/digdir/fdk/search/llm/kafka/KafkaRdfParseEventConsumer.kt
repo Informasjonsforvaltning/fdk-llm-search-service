@@ -6,7 +6,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 
 @Component
@@ -22,11 +21,8 @@ class KafkaRdfParseEventConsumer(
         id = CircuitBreakerNames.RDF_PARSE
     )
     fun listen(record: ConsumerRecord<String, GenericRecord>, ack: Acknowledgment) {
-        try {
+        ack.ackOrNack {
             kafkaRdfParseEventCircuitBreaker.process(record)
-            ack.acknowledge()
-        } catch (e: Exception) {
-            ack.nack(Duration.ZERO)
         }
     }
 }
