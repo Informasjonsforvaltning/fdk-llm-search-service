@@ -22,25 +22,29 @@ open class KafkaRemovedEventCircuitBreaker(
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
 ) : AbstractKafkaCircuitBreaker(
-    circuitBreakerRegistry,
-    transactionManager,
-    CircuitBreakerNames.REMOVE,
-) {
-    private fun resourceTypeFromSchema(schemaName: String?): RdfParseResourceType? = when (schemaName) {
-        "no.fdk.dataset.DatasetEvent" -> RdfParseResourceType.DATASET
-        "no.fdk.dataservice.DataServiceEvent" -> RdfParseResourceType.DATA_SERVICE
-        "no.fdk.concept.ConceptEvent" -> RdfParseResourceType.CONCEPT
-        "no.fdk.informationmodel.InformationModelEvent" -> RdfParseResourceType.INFORMATION_MODEL
-        "no.fdk.service.ServiceEvent" -> RdfParseResourceType.SERVICE
-        "no.fdk.event.EventEvent" -> RdfParseResourceType.EVENT
-        else -> null
-    }
+        circuitBreakerRegistry,
+        transactionManager,
+        CircuitBreakerNames.REMOVE,
+    ) {
+    private fun resourceTypeFromSchema(schemaName: String?): RdfParseResourceType? =
+        when (schemaName) {
+            "no.fdk.dataset.DatasetEvent" -> RdfParseResourceType.DATASET
+            "no.fdk.dataservice.DataServiceEvent" -> RdfParseResourceType.DATA_SERVICE
+            "no.fdk.concept.ConceptEvent" -> RdfParseResourceType.CONCEPT
+            "no.fdk.informationmodel.InformationModelEvent" -> RdfParseResourceType.INFORMATION_MODEL
+            "no.fdk.service.ServiceEvent" -> RdfParseResourceType.SERVICE
+            "no.fdk.event.EventEvent" -> RdfParseResourceType.EVENT
+            else -> null
+        }
 
-    private fun isRemovedEvent(typeStr: String?): Boolean = when (typeStr) {
-        "DATASET_REMOVED", "DATA_SERVICE_REMOVED", "CONCEPT_REMOVED",
-        "INFORMATION_MODEL_REMOVED", "SERVICE_REMOVED", "EVENT_REMOVED" -> true
-        else -> false
-    }
+    private fun isRemovedEvent(typeStr: String?): Boolean =
+        when (typeStr) {
+            "DATASET_REMOVED", "DATA_SERVICE_REMOVED", "CONCEPT_REMOVED",
+            "INFORMATION_MODEL_REMOVED", "SERVICE_REMOVED", "EVENT_REMOVED",
+            -> true
+
+            else -> false
+        }
 
     override fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("Received message - offset: " + record.offset())
@@ -57,19 +61,21 @@ open class KafkaRemovedEventCircuitBreaker(
         val startTime = Instant.now()
 
         try {
-            val (deleted, timeElapsed) = measureTimedValue {
-                if (isRemovedEvent(typeStr)) {
-                    logger.debug("Remove embedding - id: {}", fdkId)
-                    embeddingService.markDeletedByIdAndBeforeTimestamp(fdkId, timestamp)
-                } else {
-                    logger.debug("Unknown event type: {}, skipping", typeStr)
-                    false
+            val (deleted, timeElapsed) =
+                measureTimedValue {
+                    if (isRemovedEvent(typeStr)) {
+                        logger.debug("Remove embedding - id: {}", fdkId)
+                        embeddingService.markDeletedByIdAndBeforeTimestamp(fdkId, timestamp)
+                    } else {
+                        logger.debug("Unknown event type: {}, skipping", typeStr)
+                        false
+                    }
                 }
-            }
             val endTime = Instant.now()
 
             if (deleted) {
-                Metrics.timer("embedding_delete", "type", resourceTypeTag)
+                Metrics
+                    .timer("embedding_delete", "type", resourceTypeTag)
                     .record(timeElapsed.toJavaDuration())
 
                 if (resourceType != null) {
@@ -79,17 +85,19 @@ open class KafkaRemovedEventCircuitBreaker(
                         dataType = harvestEventProducer.mapResourceTypeToDataType(resourceType),
                         fdkId = fdkId,
                         startTime = startTime,
-                        endTime = endTime
+                        endTime = endTime,
                     )
                 }
             }
         } catch (e: Exception) {
             val endTime = Instant.now()
             logger.error("Error processing message", e)
-            Metrics.counter(
-                "embedding_delete_error",
-                "type", resourceTypeTag
-            ).increment()
+            Metrics
+                .counter(
+                    "embedding_delete_error",
+                    "type",
+                    resourceTypeTag,
+                ).increment()
 
             if (resourceType != null) {
                 try {
@@ -100,7 +108,7 @@ open class KafkaRemovedEventCircuitBreaker(
                         fdkId = fdkId,
                         startTime = startTime,
                         endTime = endTime,
-                        errorMessage = e.message ?: "Unknown error"
+                        errorMessage = e.message ?: "Unknown error",
                     )
                 } catch (harvestEventError: Exception) {
                     logger.error("Error producing harvest event for deletion failure", harvestEventError)

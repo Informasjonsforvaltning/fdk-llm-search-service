@@ -3,42 +3,39 @@ package no.digdir.fdk.search.llm.model
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(
-    description = "A single search result hit containing resource information and relevance explanation"
+    description = "A single search result hit containing resource information and relevance explanation",
 )
 data class LlmSearchHit(
     @param:Schema(
         description = "Unique identifier of the resource",
-        example = "12345"
+        example = "12345",
     )
-    val id : String,
-
+    val id: String,
     @param:Schema(
         description = "Title of the resource",
-        example = "Befolkningsstatistikk"
+        example = "Befolkningsstatistikk",
     )
-    val title : String,
-
+    val title: String,
     @param:Schema(
         description = "Explanation of why this resource matches the search query, formatted in Markdown",
-        example = "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling."
+        example =
+            "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, " +
+                "inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling.",
     )
-    val description : String,
-
+    val description: String,
     @param:Schema(
         description = "Type of resource (e.g., 'dataset', 'dataservice')",
-        example = "dataset"
+        example = "dataset",
     )
-    val type : String,
-
+    val type: String,
     @param:Schema(
         description = "Name of the organization that published the resource",
-        example = "Statistisk sentralbyrå"
+        example = "Statistisk sentralbyrå",
     )
-    val publisher : String,
-
+    val publisher: String,
     @param:Schema(
         description = "Unique identifier of the publishing organization",
-        example = "991825827"
+        example = "991825827",
     )
     val publisherId: String,
 )
@@ -56,12 +53,12 @@ data class LlmSearchHit(
       "publisherId": "991825827"
     }
   ]
-}"""
+}""",
 )
 data class LlmSearchResult(
     @param:Schema(
         description = "List of search hits, ordered by relevance",
-        required = true
+        required = true,
     )
-    val hits : List<LlmSearchHit>
+    val hits: List<LlmSearchHit>,
 )

@@ -16,7 +16,7 @@ data class VertexProperties(
     var embeddingModelName: String? = null,
     var maxOutputTokens: Int? = null,
     var topP: Float? = null,
-    var temperature: Float? = null
+    var temperature: Float? = null,
 )
 
 data class SearchProperties(

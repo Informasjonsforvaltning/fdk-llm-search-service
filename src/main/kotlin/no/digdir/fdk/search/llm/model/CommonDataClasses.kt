@@ -9,25 +9,23 @@ data class LocalizedStrings(
     val nb: String?,
     val nn: String?,
     val no: String?,
-    val en: String?
+    val en: String?,
 )
 
-fun LocalizedStrings.valueByPriority(): String? {
-    return nb ?: no ?: nn ?: en
-}
+fun LocalizedStrings.valueByPriority(): String? = nb ?: no ?: nn ?: en
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EuDataTheme(
     val title: LocalizedStrings?,
-    val code: String?
+    val code: String?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class LosNode(
     val name: LocalizedStrings?,
-    val losPaths: List<String>?
+    val losPaths: List<String>?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -41,12 +39,12 @@ data class ReferenceDataCode(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Reference(
     val referenceType: ReferenceDataCode?,
-    val source: ObjectWithURI?
+    val source: ObjectWithURI?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ObjectWithURI(
-    val uri: String?
+    val uri: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -59,14 +57,14 @@ data class AssociativeRelation(
 data class GenericRelation(
     val divisioncriterion: LocalizedStrings?,
     val generalizes: String?,
-    val specializes: String?
+    val specializes: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PartitiveRelation(
     val description: LocalizedStrings?,
     val hasPart: String?,
-    val isPartOf: String?
+    val isPartOf: String?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -87,7 +85,7 @@ data class Definition(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HarvestMetadata(
     val firstHarvested: String?,
-    val modified: String?
+    val modified: String?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -96,7 +94,7 @@ data class Metadata(
     val firstHarvested: String?,
     val modified: String?,
     val deleted: Boolean?,
-    val timestamp: Long?
+    val timestamp: Long?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -132,7 +130,7 @@ data class Organization(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Distribution(
-    val fdkFormat: List<MediaTypeOrExtent>?
+    val fdkFormat: List<MediaTypeOrExtent>?,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -141,7 +139,7 @@ data class MediaTypeOrExtent(
     val uri: String?,
     val name: String?,
     val code: String?,
-    val type: MediaTypeOrExtentType = MediaTypeOrExtentType.UNKNOWN
+    val type: MediaTypeOrExtentType = MediaTypeOrExtentType.UNKNOWN,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

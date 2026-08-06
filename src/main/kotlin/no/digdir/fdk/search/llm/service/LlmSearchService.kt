@@ -1,6 +1,5 @@
 package no.digdir.fdk.search.llm.service
 
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.DistributionSummary
@@ -9,7 +8,12 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import no.digdir.fdk.search.llm.configuration.AiProperties
 import no.digdir.fdk.search.llm.configuration.SearchProperties
-import no.digdir.fdk.search.llm.model.*
+import no.digdir.fdk.search.llm.model.AIResult
+import no.digdir.fdk.search.llm.model.LlmSearchHit
+import no.digdir.fdk.search.llm.model.LlmSearchOperation
+import no.digdir.fdk.search.llm.model.LlmSearchResult
+import no.digdir.fdk.search.llm.model.SearchType
+import no.digdir.fdk.search.llm.model.TextEmbedding
 import no.digdir.fdk.search.llm.repository.SearchQueryRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,7 +21,6 @@ import org.slf4j.MDC
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.concurrent.TimeUnit
-
 
 @Component
 class LlmSearchService(
@@ -54,20 +57,21 @@ class LlmSearchService(
         val search = aiProperties.search ?: SearchProperties()
 
         val embeddingStart = System.nanoTime()
-        val embeddings = embeddingService.similaritySearch(
-            query, searchType, search.simThreshold, search.numMatches)
+        val embeddings =
+            embeddingService.similaritySearch(query, searchType, search.simThreshold, search.numMatches)
         val embeddingNanos = System.nanoTime() - embeddingStart
 
         val llmStart = System.nanoTime()
-        val (result, llmFailed) = runCatching {
-            searchAssistant.answer(objectMapper.writeValueAsString(embeddings), query)
-        }.fold(
-            onSuccess = { aiResult -> aiResult to false },
-            onFailure = { ex ->
-                logger.warn("Failed to obtain structured response from LLM", ex)
-                AIResult(false, emptyList()) to true
-            },
-        )
+        val (result, llmFailed) =
+            runCatching {
+                searchAssistant.answer(objectMapper.writeValueAsString(embeddings), query)
+            }.fold(
+                onSuccess = { aiResult -> aiResult to false },
+                onFailure = { ex ->
+                    logger.warn("Failed to obtain structured response from LLM", ex)
+                    AIResult(false, emptyList()) to true
+                },
+            )
         val llmNanos = System.nanoTime() - llmStart
 
         logger.debug("AI Result: {}", result)
@@ -86,17 +90,18 @@ class LlmSearchService(
         )
 
         return LlmSearchResult(
-            hits = result.hits.map { hit ->
-                val embedding = embeddings.find { it.id == hit.id }
-                LlmSearchHit(
-                    id = hit.id,
-                    title = hit.name,
-                    description = hit.reason,
-                    type = embedding?.metadata?.get("type") ?: "",
-                    publisher = embedding?.metadata?.get("publisher") ?: "",
-                    publisherId = embedding?.metadata?.get("publisherId") ?: "",
-                )
-            }
+            hits =
+                result.hits.map { hit ->
+                    val embedding = embeddings.find { it.id == hit.id }
+                    LlmSearchHit(
+                        id = hit.id,
+                        title = hit.name,
+                        description = hit.reason,
+                        type = embedding?.metadata?.get("type") ?: "",
+                        publisher = embedding?.metadata?.get("publisher") ?: "",
+                        publisherId = embedding?.metadata?.get("publisherId") ?: "",
+                    )
+                },
         )
     }
 
@@ -151,12 +156,17 @@ class LlmSearchService(
         embeddingNanos: Long,
         llmNanos: Long,
     ) {
-        val tags = Tags.of(
-            "type", searchType.name,
-            "zero_hits", zeroHits.toString(),
-            "llm_failed", llmFailed.toString(),
-            "sensitive", sensitive.toString(),
-        )
+        val tags =
+            Tags.of(
+                "type",
+                searchType.name,
+                "zero_hits",
+                zeroHits.toString(),
+                "llm_failed",
+                llmFailed.toString(),
+                "sensitive",
+                sensitive.toString(),
+            )
 
         meterRegistry.counter("fdk_llm_search_queries_total", tags).increment()
         recordPhaseTimer("embedding", embeddingNanos)
@@ -178,19 +188,20 @@ class LlmSearchService(
         llmNanos: Long,
     ) {
         val safeQuery = if (sensitive) "[REDACTED]" else query
-        val mdc = mutableMapOf(
-            "event" to "llm_search",
-            "query" to safeQuery,
-            "query_length" to query.length.toString(),
-            "search_type" to searchType.name,
-            "hits_embedding" to hitsEmbedding.toString(),
-            "hits_llm" to hitsLlm.toString(),
-            "zero_hits" to zeroHits.toString(),
-            "sensitive" to sensitive.toString(),
-            "llm_failed" to llmFailed.toString(),
-            "embedding_ms" to TimeUnit.NANOSECONDS.toMillis(embeddingNanos).toString(),
-            "llm_ms" to TimeUnit.NANOSECONDS.toMillis(llmNanos).toString(),
-        )
+        val mdc =
+            mutableMapOf(
+                "event" to "llm_search",
+                "query" to safeQuery,
+                "query_length" to query.length.toString(),
+                "search_type" to searchType.name,
+                "hits_embedding" to hitsEmbedding.toString(),
+                "hits_llm" to hitsLlm.toString(),
+                "zero_hits" to zeroHits.toString(),
+                "sensitive" to sensitive.toString(),
+                "llm_failed" to llmFailed.toString(),
+                "embedding_ms" to TimeUnit.NANOSECONDS.toMillis(embeddingNanos).toString(),
+                "llm_ms" to TimeUnit.NANOSECONDS.toMillis(llmNanos).toString(),
+            )
         if (zeroHits && hitsEmbedding > 0 && !sensitive) {
             mdc["embedding_hits"] = serializeEmbeddingHits(embeddings)
         }
@@ -202,8 +213,12 @@ class LlmSearchService(
         }
     }
 
-    private fun recordPhaseTimer(phase: String, nanos: Long) {
-        Timer.builder("fdk_llm_search_phase_duration")
+    private fun recordPhaseTimer(
+        phase: String,
+        nanos: Long,
+    ) {
+        Timer
+            .builder("fdk_llm_search_phase_duration")
             .tag("phase", phase)
             .publishPercentileHistogram()
             .serviceLevelObjectives(
@@ -212,13 +227,16 @@ class LlmSearchService(
                 Duration.ofSeconds(2),
                 Duration.ofSeconds(5),
                 Duration.ofSeconds(10),
-            )
-            .register(meterRegistry)
+            ).register(meterRegistry)
             .record(nanos, TimeUnit.NANOSECONDS)
     }
 
-    private fun recordHits(stage: String, hits: Int) {
-        DistributionSummary.builder("fdk_llm_search_hits")
+    private fun recordHits(
+        stage: String,
+        hits: Int,
+    ) {
+        DistributionSummary
+            .builder("fdk_llm_search_hits")
             .tag("stage", stage)
             .publishPercentileHistogram()
             .serviceLevelObjectives(0.5, 1.0, 3.0, 5.0, 10.0)
@@ -235,7 +253,7 @@ class LlmSearchService(
                     "publisherId" to e.metadata?.get("publisherId"),
                     "content" to e.content,
                 )
-            }
+            },
         )
 
     companion object {

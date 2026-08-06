@@ -23,19 +23,21 @@ import org.springframework.web.server.ResponseStatusException
 @RequestMapping(value = ["/llm"], produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(
     name = "LLM Search",
-    description = "API for performing intelligent, context-aware searches across the data catalog using Large Language Models"
+    description = "API for performing intelligent, context-aware searches across the data catalog using Large Language Models",
 )
 class LlmSearchController(
-    private val llmSearchService: LlmSearchService
+    private val llmSearchService: LlmSearchService,
 ) {
     @PostMapping
     @Operation(
         summary = "Perform LLM-powered search",
-        description = "Performs an intelligent, context-aware search across the data catalog using natural language queries. " +
+        description =
+            "Performs an intelligent, context-aware search across the data catalog using natural language queries. " +
                 "The search process uses vector similarity search combined with LLM filtering to find and rank relevant resources. " +
                 "Results include explanations of why each resource matches the query, making it easier to understand relevance. " +
-                "By default, searches for datasets. Use the 'type' parameter to filter by resource type (CONCEPT, DATA_SERVICE, INFORMATION_MODEL, SERVICE, EVENT) or use ALL to search across all resource types. " +
-                "Query requirements: minimum length 3 characters, maximum length 255 characters, supports natural language queries in Norwegian. " +
+                "By default, searches for datasets. Use the 'type' parameter to filter by resource type (CONCEPT, DATA_SERVICE, " +
+                "INFORMATION_MODEL, SERVICE, EVENT) or use ALL to search across all resource types. Query requirements: " +
+                "minimum length 3 characters, maximum length 255 characters, supports natural language queries in Norwegian. " +
                 "Typical response time is approximately 5 seconds, with most time spent on LLM processing.",
     )
     @ApiResponses(
@@ -68,15 +70,14 @@ class LlmSearchController(
             required = true,
             schema = Schema(implementation = LlmSearchOperation::class),
         )
-        @RequestBody query: LlmSearchOperation
+        @RequestBody query: LlmSearchOperation,
     ): ResponseEntity<LlmSearchResult> =
         try {
             ResponseEntity(
                 llmSearchService.search(query),
-                HttpStatus.OK
+                HttpStatus.OK,
             )
         } catch (e: IllegalArgumentException) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message)
         }
 }
-
