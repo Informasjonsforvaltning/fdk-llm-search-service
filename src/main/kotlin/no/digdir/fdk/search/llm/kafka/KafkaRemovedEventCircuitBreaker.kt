@@ -2,6 +2,7 @@ package no.digdir.fdk.search.llm.kafka
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.micrometer.core.instrument.Metrics
+import no.digdir.fdk.search.llm.configuration.CircuitBreakerNames
 import no.digdir.fdk.search.llm.service.EmbeddingService
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -21,7 +22,7 @@ open class KafkaRemovedEventCircuitBreaker(
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
 ) {
-    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker("remove")
+    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.REMOVE)
     private val transactionTemplate = TransactionTemplate(transactionManager)
 
     private fun resourceTypeFromSchema(schemaName: String?): String = when (schemaName) {

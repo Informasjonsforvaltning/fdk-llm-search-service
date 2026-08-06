@@ -3,6 +3,7 @@ package no.digdir.fdk.search.llm.kafka
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.micrometer.core.instrument.Metrics
+import no.digdir.fdk.search.llm.configuration.CircuitBreakerNames
 import no.digdir.fdk.search.llm.model.*
 import no.digdir.fdk.search.llm.service.EmbeddingService
 import no.fdk.rdf.parse.RdfParseResourceType
@@ -24,7 +25,7 @@ open class KafkaRdfParseEventCircuitBreaker(
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
 ) {
-    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker("rdf-parse")
+    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.RDF_PARSE)
     private val transactionTemplate = TransactionTemplate(transactionManager)
 
     private fun resourceTypeFromRecord(record: GenericRecord): RdfParseResourceType {
