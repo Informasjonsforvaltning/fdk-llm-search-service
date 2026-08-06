@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry
 import io.micrometer.core.instrument.Metrics
 import no.digdir.fdk.search.llm.configuration.CircuitBreakerNames
 import no.digdir.fdk.search.llm.service.EmbeddingService
+import no.fdk.rdf.parse.RdfParseResourceType
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
@@ -25,14 +26,14 @@ open class KafkaRemovedEventCircuitBreaker(
     private val circuitBreaker = circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.REMOVE)
     private val transactionTemplate = TransactionTemplate(transactionManager)
 
-    private fun resourceTypeFromSchema(schemaName: String?): String = when (schemaName) {
-        "no.fdk.dataset.DatasetEvent" -> "dataset"
-        "no.fdk.dataservice.DataServiceEvent" -> "data-service"
-        "no.fdk.concept.ConceptEvent" -> "concept"
-        "no.fdk.informationmodel.InformationModelEvent" -> "information-model"
-        "no.fdk.service.ServiceEvent" -> "service"
-        "no.fdk.event.EventEvent" -> "event"
-        else -> "invalid-type"
+    private fun resourceTypeFromSchema(schemaName: String?): RdfParseResourceType? = when (schemaName) {
+        "no.fdk.dataset.DatasetEvent" -> RdfParseResourceType.DATASET
+        "no.fdk.dataservice.DataServiceEvent" -> RdfParseResourceType.DATA_SERVICE
+        "no.fdk.concept.ConceptEvent" -> RdfParseResourceType.CONCEPT
+        "no.fdk.informationmodel.InformationModelEvent" -> RdfParseResourceType.INFORMATION_MODEL
+        "no.fdk.service.ServiceEvent" -> RdfParseResourceType.SERVICE
+        "no.fdk.event.EventEvent" -> RdfParseResourceType.EVENT
+        else -> null
     }
 
     private fun isRemovedEvent(typeStr: String?): Boolean = when (typeStr) {
@@ -60,6 +61,7 @@ open class KafkaRemovedEventCircuitBreaker(
         val fdkId = event?.get("fdkId")?.toString() ?: return
         val timestamp = runCatching { (event?.get("timestamp") as? Number)?.toLong() }.getOrNull() ?: 0L
         val resourceType = resourceTypeFromSchema(schemaName)
+        val resourceTypeTag = resourceType?.name?.lowercase() ?: "unknown"
         val startTime = Instant.now()
 
         try {
@@ -75,18 +77,17 @@ open class KafkaRemovedEventCircuitBreaker(
             val endTime = Instant.now()
 
             if (deleted) {
-                Metrics.timer("embedding_delete", "type", resourceType)
+                Metrics.timer("embedding_delete", "type", resourceTypeTag)
                     .record(timeElapsed.toJavaDuration())
 
-                if (resourceType != "invalid-type") {
-                    val dataType = harvestEventProducer.mapResourceTypeStringToDataType(resourceType)
+                if (resourceType != null) {
                     harvestEventProducer.produceDeletionSuccessEvent(
-                    harvestRunId = harvestRunId,
-                    uri = uri,
-                    dataType = dataType,
-                    fdkId = fdkId,
-                    startTime = startTime,
-                    endTime = endTime
+                        harvestRunId = harvestRunId,
+                        uri = uri,
+                        dataType = harvestEventProducer.mapResourceTypeToDataType(resourceType),
+                        fdkId = fdkId,
+                        startTime = startTime,
+                        endTime = endTime
                     )
                 }
             }
@@ -95,25 +96,25 @@ open class KafkaRemovedEventCircuitBreaker(
             logger.error("Error processing message", e)
             Metrics.counter(
                 "embedding_delete_error",
-                "type", resourceType
+                "type", resourceTypeTag
             ).increment()
-            
-            // Produce harvest event on deletion failure
-            if (resourceType != "invalid-type") try {
-                val dataType = harvestEventProducer.mapResourceTypeStringToDataType(resourceType)
-                harvestEventProducer.produceDeletionFailureEvent(
-                    harvestRunId = harvestRunId,
-                    uri = uri,
-                    dataType = dataType,
-                    fdkId = fdkId,
-                    startTime = startTime,
-                    endTime = endTime,
-                    errorMessage = e.message ?: "Unknown error"
-                )
-            } catch (harvestEventError: Exception) {
-                logger.error("Error producing harvest event for deletion failure", harvestEventError)
+
+            if (resourceType != null) {
+                try {
+                    harvestEventProducer.produceDeletionFailureEvent(
+                        harvestRunId = harvestRunId,
+                        uri = uri,
+                        dataType = harvestEventProducer.mapResourceTypeToDataType(resourceType),
+                        fdkId = fdkId,
+                        startTime = startTime,
+                        endTime = endTime,
+                        errorMessage = e.message ?: "Unknown error"
+                    )
+                } catch (harvestEventError: Exception) {
+                    logger.error("Error producing harvest event for deletion failure", harvestEventError)
+                }
             }
-            
+
             throw e
         }
     }

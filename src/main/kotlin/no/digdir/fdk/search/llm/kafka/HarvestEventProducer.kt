@@ -21,7 +21,7 @@ class HarvestEventProducer(
     /**
      * Map RdfParseResourceType to DataType enum
      */
-    private fun mapResourceTypeToDataType(resourceType: RdfParseResourceType): DataType {
+    internal fun mapResourceTypeToDataType(resourceType: RdfParseResourceType): DataType {
         return when (resourceType) {
             RdfParseResourceType.DATASET -> DataType.dataset
             RdfParseResourceType.DATA_SERVICE -> DataType.dataservice
@@ -29,21 +29,6 @@ class HarvestEventProducer(
             RdfParseResourceType.INFORMATION_MODEL -> DataType.informationmodel
             RdfParseResourceType.SERVICE -> DataType.publicService
             RdfParseResourceType.EVENT -> DataType.event
-        }
-    }
-
-    /**
-     * Map resource type string to DataType enum
-     */
-    fun mapResourceTypeStringToDataType(resourceType: String): DataType {
-        return when (resourceType.lowercase()) {
-            "dataset" -> DataType.dataset
-            "data-service" -> DataType.dataservice
-            "concept" -> DataType.concept
-            "information-model" -> DataType.informationmodel
-            "service" -> DataType.publicService
-            "event" -> DataType.event
-            else -> throw IllegalArgumentException("Unknown resource type: $resourceType")
         }
     }
 
