@@ -151,16 +151,3 @@ data class Temporal(
     val startDate: String?,
     val endDate: String?,
 )
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class AIResultHit(
-    val id: String,
-    val name: String,
-    val reason: String
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class AIResult(
-    val sensitive: Boolean,
-    val hits: List<AIResultHit>
-)
