@@ -20,6 +20,5 @@ data class Concept(
     val replaces: List<String>?,
     val seeAlso: List<String>?,
     val hiddenLabel: List<LocalizedStrings>?,
-    val altLabel: List<LocalizedStrings>?
+    val altLabel: List<LocalizedStrings>?,
 )
-

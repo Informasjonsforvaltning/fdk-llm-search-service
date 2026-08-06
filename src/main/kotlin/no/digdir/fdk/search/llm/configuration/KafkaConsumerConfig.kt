@@ -14,10 +14,9 @@ import org.springframework.kafka.listener.ContainerProperties
 @EnableKafka
 @Configuration
 class KafkaConsumerConfig {
-
     @Bean
     fun kafkaListenerContainerFactory(
-        consumerFactory: ConsumerFactory<String, GenericRecord>
+        consumerFactory: ConsumerFactory<String, GenericRecord>,
     ): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, GenericRecord>()
         factory.setConsumerFactory(consumerFactory)
@@ -28,21 +27,22 @@ class KafkaConsumerConfig {
     @Bean
     fun consumerFactory(
         @Value("\${spring.kafka.bootstrap-servers}") bootstrapServers: String,
-        @Value("\${spring.kafka.properties.schema.registry.url}") schemaRegistryUrl: String
+        @Value("\${spring.kafka.properties.schema.registry.url}") schemaRegistryUrl: String,
     ): ConsumerFactory<String, GenericRecord> {
-        val props = mapOf(
-            "bootstrap.servers" to bootstrapServers,
-            "key.deserializer" to "org.apache.kafka.common.serialization.StringDeserializer",
-            "value.deserializer" to "io.confluent.kafka.serializers.KafkaAvroDeserializer",
-            "schema.registry.url" to schemaRegistryUrl,
-            KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to false,
-            "auto.offset.reset" to "earliest",
-            "enable.auto.commit" to false,
-            "auto.register.schemas" to false,
-            "use.latest.version" to true,
-            "value.subject.name.strategy" to "io.confluent.kafka.serializers.subject.RecordNameStrategy",
-            "key.subject.name.strategy" to "io.confluent.kafka.serializers.subject.RecordNameStrategy"
-        )
+        val props =
+            mapOf(
+                "bootstrap.servers" to bootstrapServers,
+                "key.deserializer" to "org.apache.kafka.common.serialization.StringDeserializer",
+                "value.deserializer" to "io.confluent.kafka.serializers.KafkaAvroDeserializer",
+                "schema.registry.url" to schemaRegistryUrl,
+                KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to false,
+                "auto.offset.reset" to "earliest",
+                "enable.auto.commit" to false,
+                "auto.register.schemas" to false,
+                "use.latest.version" to true,
+                "value.subject.name.strategy" to "io.confluent.kafka.serializers.subject.RecordNameStrategy",
+                "key.subject.name.strategy" to "io.confluent.kafka.serializers.subject.RecordNameStrategy",
+            )
         return DefaultKafkaConsumerFactory(props)
     }
 }

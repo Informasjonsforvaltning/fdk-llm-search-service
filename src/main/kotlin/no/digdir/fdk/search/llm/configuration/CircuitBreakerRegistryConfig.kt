@@ -9,17 +9,18 @@ import java.time.Duration
 
 @Configuration(proxyBeanMethods = false)
 class CircuitBreakerRegistryConfig {
-
     @Bean
     fun circuitBreakerRegistry(): CircuitBreakerRegistry {
-        val config = CircuitBreakerConfig.custom()
-            .slidingWindowType(SlidingWindowType.COUNT_BASED)
-            .slidingWindowSize(10)
-            .failureRateThreshold(50f)
-            .permittedNumberOfCallsInHalfOpenState(3)
-            .waitDurationInOpenState(Duration.ofSeconds(60))
-            .automaticTransitionFromOpenToHalfOpenEnabled(true)
-            .build()
+        val config =
+            CircuitBreakerConfig
+                .custom()
+                .slidingWindowType(SlidingWindowType.COUNT_BASED)
+                .slidingWindowSize(10)
+                .failureRateThreshold(50f)
+                .permittedNumberOfCallsInHalfOpenState(3)
+                .waitDurationInOpenState(Duration.ofSeconds(60))
+                .automaticTransitionFromOpenToHalfOpenEnabled(true)
+                .build()
 
         val registry = CircuitBreakerRegistry.of(config)
         registry.circuitBreaker(CircuitBreakerNames.RDF_PARSE)

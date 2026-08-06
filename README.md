@@ -209,3 +209,12 @@ Utover dette lagres det ingen personopplysninger i tjenesten.
 Mer om Google generative AI og Data Governance kan leses her:
 
 - https://cloud.google.com/vertex-ai/generative-ai/docs/data-governance#prediction
+
+### Formatting code
+
+This project uses [ktlint](https://github.com/gantsign/ktlint-maven-plugin) to enforce a consistent code style.
+To automatically fix formatting violations, run:
+
+```sh
+mvn ktlint:format
+```

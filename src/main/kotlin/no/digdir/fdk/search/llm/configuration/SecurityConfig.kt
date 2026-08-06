@@ -13,7 +13,7 @@ import org.springframework.web.cors.CorsConfiguration
 @Configuration
 class SecurityConfig(
     @param:Value("\${application.cors.originPatterns}")
-        val corsOriginPatterns: Array<String>
+    val corsOriginPatterns: Array<String>,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -31,11 +31,9 @@ class SecurityConfig(
 
                     config
                 }
-            }
-            .csrf {
+            }.csrf {
                 it.disable()
-            }
-            .sessionManagement {
+            }.sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
         return http.build()

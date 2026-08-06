@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 data class AIResultHit(
     val id: String,
     val name: String,
-    val reason: String
+    val reason: String,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AIResult(
     val sensitive: Boolean,
-    val hits: List<AIResultHit>
+    val hits: List<AIResultHit>,
 )

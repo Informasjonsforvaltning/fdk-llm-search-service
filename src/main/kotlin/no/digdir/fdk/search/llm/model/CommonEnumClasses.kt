@@ -13,7 +13,7 @@ enum class SearchType {
 enum class MediaTypeOrExtentType {
     UNKNOWN,
     MEDIA_TYPE,
-    FILE_TYPE
+    FILE_TYPE,
 }
 
 enum class SpecializedType {

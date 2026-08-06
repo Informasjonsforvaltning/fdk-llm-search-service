@@ -12,13 +12,13 @@ import java.time.Instant
 
 @Component
 class HarvestEventProducer(
-    private val kafkaTemplate: KafkaTemplate<String, HarvestEvent>
+    private val kafkaTemplate: KafkaTemplate<String, HarvestEvent>,
 ) {
     /**
      * Map RdfParseResourceType to DataType enum
      */
-    internal fun mapResourceTypeToDataType(resourceType: RdfParseResourceType): DataType {
-        return when (resourceType) {
+    internal fun mapResourceTypeToDataType(resourceType: RdfParseResourceType): DataType =
+        when (resourceType) {
             RdfParseResourceType.DATASET -> DataType.dataset
             RdfParseResourceType.DATA_SERVICE -> DataType.dataservice
             RdfParseResourceType.CONCEPT -> DataType.concept
@@ -26,7 +26,6 @@ class HarvestEventProducer(
             RdfParseResourceType.SERVICE -> DataType.publicService
             RdfParseResourceType.EVENT -> DataType.event
         }
-    }
 
     /**
      * Produce harvest event when search indexing finishes successfully
@@ -37,7 +36,7 @@ class HarvestEventProducer(
         resourceType: RdfParseResourceType,
         fdkId: String,
         startTime: Instant,
-        endTime: Instant
+        endTime: Instant,
     ) {
         sendHarvestEvent(harvestRunId, fdkId, "harvest success event") { runId ->
             buildHarvestEvent(
@@ -61,7 +60,7 @@ class HarvestEventProducer(
         fdkId: String,
         startTime: Instant,
         endTime: Instant,
-        errorMessage: String
+        errorMessage: String,
     ) {
         sendHarvestEvent(harvestRunId, fdkId, "harvest failure event") { runId ->
             buildHarvestEvent(
@@ -85,7 +84,7 @@ class HarvestEventProducer(
         dataType: DataType,
         fdkId: String,
         startTime: Instant,
-        endTime: Instant
+        endTime: Instant,
     ) {
         sendHarvestEvent(harvestRunId, fdkId, "harvest deletion success event") { runId ->
             buildHarvestEvent(
@@ -109,7 +108,7 @@ class HarvestEventProducer(
         fdkId: String,
         startTime: Instant,
         endTime: Instant,
-        errorMessage: String
+        errorMessage: String,
     ) {
         sendHarvestEvent(harvestRunId, fdkId, "harvest deletion failure event") { runId ->
             buildHarvestEvent(
@@ -132,21 +131,23 @@ class HarvestEventProducer(
         startTime: Instant,
         endTime: Instant,
         errorMessage: String? = null,
-    ): HarvestEvent = HarvestEvent.newBuilder()
-        .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
-        .setRunId(harvestRunId)
-        .setDataType(dataType)
-        .setFdkId(fdkId)
-        .setResourceUri(uri)
-        .setStartTime(startTime.toString())
-        .setEndTime(endTime.toString())
-        .setErrorMessage(errorMessage)
-        .setDataSourceId(null)
-        .setDataSourceUrl(null)
-        .setAcceptHeader(null)
-        .setChangedResourcesCount(null)
-        .setRemovedResourcesCount(null)
-        .build()
+    ): HarvestEvent =
+        HarvestEvent
+            .newBuilder()
+            .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
+            .setRunId(harvestRunId)
+            .setDataType(dataType)
+            .setFdkId(fdkId)
+            .setResourceUri(uri)
+            .setStartTime(startTime.toString())
+            .setEndTime(endTime.toString())
+            .setErrorMessage(errorMessage)
+            .setDataSourceId(null)
+            .setDataSourceUrl(null)
+            .setAcceptHeader(null)
+            .setChangedResourcesCount(null)
+            .setRemovedResourcesCount(null)
+            .build()
 
     private fun sendHarvestEvent(
         harvestRunId: String?,

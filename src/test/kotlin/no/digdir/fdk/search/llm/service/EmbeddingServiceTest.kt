@@ -23,7 +23,8 @@ class EmbeddingServiceTest {
         val vector = FloatArray(768)
         vector.fill(0.1f)
 
-        val expectedSummary = """
+        val expectedSummary =
+            """
 Dette datasettet, med id '12345' og navn 'NB Test title' er utgitt av 'NB Test publisher > prefLabel'.
 Datasettet har public tilgang.
 
@@ -35,7 +36,7 @@ Datasettet har 1 distribusjoner og tilbyr data på formatene json.
 Temaene for datasettet er: eutheme1, eutheme2, lostheme1.
 Nøkkelordene for datasettet er: keyword.
 Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
-        """.trimIndent()
+            """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(vector)
@@ -46,12 +47,16 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
         verify {
             embeddingRepository.shouldProcessMessage("12345", 1612137600000L)
             embeddingRepository.saveEmbedding(
-                "12345", expectedSummary, vector, 1612137600000, mapOf(
+                "12345",
+                expectedSummary,
+                vector,
+                1612137600000,
+                mapOf(
                     "type" to SearchType.DATASET.name,
                     "title" to "NB Test title",
                     "publisher" to "NB Test publisher > prefLabel",
-                    "publisherId" to "Test publisher > identifier"
-                )
+                    "publisherId" to "Test publisher > identifier",
+                ),
             )
         }
     }
@@ -61,10 +66,11 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
         val vector = FloatArray(768)
         vector.fill(0.5f)
 
-        val expectedEmbeddings = listOf(
-            TextEmbedding("12345", "content1", false, 1612137600000, mapOf("title" to "title1")),
-            TextEmbedding("12346", "content2", false, 1612137600000, mapOf("title" to "title2"))
-        )
+        val expectedEmbeddings =
+            listOf(
+                TextEmbedding("12345", "content1", false, 1612137600000, mapOf("title" to "title1")),
+                TextEmbedding("12346", "content2", false, 1612137600000, mapOf("title" to "title2")),
+            )
 
         every { vertexService.embed(any()) } returns Embedding(vector)
         every { embeddingRepository.searchSimilar(any(), any(), any(), any()) } returns expectedEmbeddings
@@ -84,14 +90,15 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
         val vector = FloatArray(768)
         vector.fill(0.1f)
 
-        val expectedSummary = """
+        val expectedSummary =
+            """
 Dette begrepet, med id 'concept-123' og navn 'NB Concept Label' er utgitt av 'NB Concept Publisher'.
 
 Beskrivelsen av begrepet er som følger:
 NB Concept definition
 
 Alternative navn for konseptet er: NB Alt Label, NB Hidden Label.
-        """.trimIndent()
+            """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(vector)
@@ -101,12 +108,16 @@ Alternative navn for konseptet er: NB Alt Label, NB Hidden Label.
 
         verify {
             embeddingRepository.saveEmbedding(
-                "concept-123", expectedSummary, vector, 1612137600000, mapOf(
+                "concept-123",
+                expectedSummary,
+                vector,
+                1612137600000,
+                mapOf(
                     "type" to SearchType.CONCEPT.name,
                     "title" to "NB Concept Label",
                     "publisher" to "NB Concept Publisher",
-                    "publisherId" to "concept-pub-id"
-                )
+                    "publisherId" to "concept-pub-id",
+                ),
             )
         }
     }
@@ -116,7 +127,8 @@ Alternative navn for konseptet er: NB Alt Label, NB Hidden Label.
         val vector = FloatArray(768)
         vector.fill(0.1f)
 
-        val expectedSummary = """
+        val expectedSummary =
+            """
 Denne datatjenesten, med id 'dataservice-123' og navn 'NB DataService Title' er utgitt av 'NB DataService Publisher'.
 Datatjenesten har public tilgang.
 
@@ -127,7 +139,7 @@ Datatjenesten tilbyr data på formatene json.
 Temaene for datatjenesten er: theme1, lostheme1.
 Nøkkelordene for datatjenesten er: keyword1.
 Datatjenesten betjener 2 datasett.
-        """.trimIndent()
+            """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(vector)
@@ -137,12 +149,16 @@ Datatjenesten betjener 2 datasett.
 
         verify {
             embeddingRepository.saveEmbedding(
-                "dataservice-123", expectedSummary, vector, 1612137600000, mapOf(
+                "dataservice-123",
+                expectedSummary,
+                vector,
+                1612137600000,
+                mapOf(
                     "type" to SearchType.DATA_SERVICE.name,
                     "title" to "NB DataService Title",
                     "publisher" to "NB DataService Publisher",
-                    "publisherId" to "dataservice-pub-id"
-                )
+                    "publisherId" to "dataservice-pub-id",
+                ),
             )
         }
     }
@@ -152,7 +168,8 @@ Datatjenesten betjener 2 datasett.
         val vector = FloatArray(768)
         vector.fill(0.1f)
 
-        val expectedSummary = """
+        val expectedSummary =
+            """
 Denne informasjonsmodellen, med id 'infomodel-123' og navn 'NB InformationModel Title' er utgitt av 'NB InformationModel Publisher'.
 Informasjonsmodellen har public tilgang.
 
@@ -162,7 +179,7 @@ NB InformationModel description
 Temaene for informasjonsmodellen er: theme1, lostheme1.
 Nøkkelordene for informasjonsmodellen er: keyword1.
 Informasjonsmodellen omhandler emnene: subject1, subject2.
-        """.trimIndent()
+            """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(vector)
@@ -172,12 +189,16 @@ Informasjonsmodellen omhandler emnene: subject1, subject2.
 
         verify {
             embeddingRepository.saveEmbedding(
-                "infomodel-123", expectedSummary, vector, 1612137600000, mapOf(
+                "infomodel-123",
+                expectedSummary,
+                vector,
+                1612137600000,
+                mapOf(
                     "type" to SearchType.INFORMATION_MODEL.name,
                     "title" to "NB InformationModel Title",
                     "publisher" to "NB InformationModel Publisher",
-                    "publisherId" to "infomodel-pub-id"
-                )
+                    "publisherId" to "infomodel-pub-id",
+                ),
             )
         }
     }
@@ -187,7 +208,8 @@ Informasjonsmodellen omhandler emnene: subject1, subject2.
         val vector = FloatArray(768)
         vector.fill(0.1f)
 
-        val expectedSummary = """
+        val expectedSummary =
+            """
 Denne tjenesten, med id 'service-123' og navn 'NB Service Title' er utgitt av 'NB Catalog Publisher'.
 
 Beskrivelsen av tjenesten er som følger:
@@ -197,7 +219,7 @@ Tjenesten eies av: NB Owner Name.
 Tjenesten har kompetent myndighet: NB Authority Name.
 Temaene for tjenesten er: theme1, lostheme1.
 Nøkkelordene for tjenesten er: keyword1.
-        """.trimIndent()
+            """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(vector)
@@ -207,12 +229,16 @@ Nøkkelordene for tjenesten er: keyword1.
 
         verify {
             embeddingRepository.saveEmbedding(
-                "service-123", expectedSummary, vector, 1612137600000, mapOf(
+                "service-123",
+                expectedSummary,
+                vector,
+                1612137600000,
+                mapOf(
                     "type" to SearchType.SERVICE.name,
                     "title" to "NB Service Title",
                     "publisher" to "NB Catalog Publisher",
-                    "publisherId" to "catalog-pub-id"
-                )
+                    "publisherId" to "catalog-pub-id",
+                ),
             )
         }
     }
@@ -222,7 +248,8 @@ Nøkkelordene for tjenesten er: keyword1.
         val vector = FloatArray(768)
         vector.fill(0.1f)
 
-        val expectedSummary = """
+        val expectedSummary =
+            """
 Denne hendelsen, med id 'event-123' og navn 'NB Event Title' er utgitt av 'NB Catalog Publisher'.
 Hendelsen er en livshendelse.
 
@@ -230,7 +257,7 @@ Beskrivelsen av hendelsen er som følger:
 NB Event description
 
 Hendelsen omhandler emnene: subject1, subject2.
-        """.trimIndent()
+            """.trimIndent()
 
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(vector)
@@ -240,12 +267,16 @@ Hendelsen omhandler emnene: subject1, subject2.
 
         verify {
             embeddingRepository.saveEmbedding(
-                "event-123", expectedSummary, vector, 1612137600000, mapOf(
+                "event-123",
+                expectedSummary,
+                vector,
+                1612137600000,
+                mapOf(
                     "type" to SearchType.EVENT.name,
                     "title" to "NB Event Title",
                     "publisher" to "NB Catalog Publisher",
-                    "publisherId" to "catalog-pub-id"
-                )
+                    "publisherId" to "catalog-pub-id",
+                ),
             )
         }
     }

@@ -20,7 +20,7 @@ data class ServiceResource(
     val isDescribedAt: List<ObjectWithURI>?,
     val relation: List<ObjectWithURI>?,
     val requires: List<ObjectWithURI>?,
-    val subject: List<ObjectWithURI>?
+    val subject: List<ObjectWithURI>?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

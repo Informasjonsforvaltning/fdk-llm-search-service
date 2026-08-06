@@ -5,5 +5,5 @@ data class TextEmbedding(
     val content: String? = null,
     val deleted: Boolean = false,
     val timestamp: Long = 0,
-    val metadata: Map<String, String?>? = null
+    val metadata: Map<String, String?>? = null,
 )

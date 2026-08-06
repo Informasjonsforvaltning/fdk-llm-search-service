@@ -10,10 +10,10 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class LlmConfig {
-
     @Bean
     fun chatModel(aiProperties: AiProperties): ChatModel =
-        VertexAiGeminiChatModel.builder()
+        VertexAiGeminiChatModel
+            .builder()
             .project(aiProperties.vertex?.project)
             .location(aiProperties.vertex?.location)
             .temperature(aiProperties.vertex?.temperature)
@@ -26,7 +26,8 @@ class LlmConfig {
 
     @Bean
     fun searchAssistant(chatModel: ChatModel): SearchAssistant =
-        AiServices.builder(SearchAssistant::class.java)
+        AiServices
+            .builder(SearchAssistant::class.java)
             .chatModel(chatModel)
             .build()
 }

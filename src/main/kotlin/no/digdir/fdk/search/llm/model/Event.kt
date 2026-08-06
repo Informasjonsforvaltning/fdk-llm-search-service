@@ -13,4 +13,3 @@ data class Event(
     val subject: List<String>?,
     @param:JsonProperty("specialized_type") val specializedType: String?,
 )
-
