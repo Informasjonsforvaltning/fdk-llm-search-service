@@ -6,7 +6,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 @Component
 class KafkaRemovedEventConsumer(
@@ -27,11 +26,8 @@ class KafkaRemovedEventConsumer(
         id = CircuitBreakerNames.REMOVE
     )
     fun listen(record: ConsumerRecord<String, GenericRecord>, ack: Acknowledgment) {
-        try {
+        ack.ackOrNack {
             kafkaRemovedEventCircuitBreaker.process(record)
-            ack.acknowledge()
-        } catch (e: Exception) {
-            ack.nack(Duration.ZERO)
         }
     }
 }

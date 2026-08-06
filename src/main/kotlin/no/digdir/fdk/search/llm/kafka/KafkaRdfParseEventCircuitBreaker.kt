@@ -13,7 +13,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.support.TransactionTemplate
 import java.time.Instant
 import kotlin.time.measureTimedValue
 import kotlin.time.toJavaDuration
@@ -24,10 +23,11 @@ open class KafkaRdfParseEventCircuitBreaker(
     private val harvestEventProducer: HarvestEventProducer,
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
+) : AbstractKafkaCircuitBreaker(
+    circuitBreakerRegistry,
+    transactionManager,
+    CircuitBreakerNames.RDF_PARSE,
 ) {
-    private val circuitBreaker = circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.RDF_PARSE)
-    private val transactionTemplate = TransactionTemplate(transactionManager)
-
     private fun resourceTypeFromRecord(record: GenericRecord): RdfParseResourceType {
         val typeStr = (record.get("resourceType") ?: "").toString()
         return when (typeStr) {
@@ -75,15 +75,7 @@ open class KafkaRdfParseEventCircuitBreaker(
         }
     }
 
-    open fun process(record: ConsumerRecord<String, GenericRecord>) {
-        circuitBreaker.executeRunnable {
-            transactionTemplate.executeWithoutResult {
-                processInTransaction(record)
-            }
-        }
-    }
-
-    private fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
+    override fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("CB Received message - offset: " + record.offset())
 
         val event = record.value()
