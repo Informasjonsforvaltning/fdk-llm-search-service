@@ -20,10 +20,9 @@ class EmbeddingRepository(
             content = rs.getString("content"),
             deleted = rs.getBoolean("deleted"),
             timestamp = rs.getLong("timestamp"),
-            metadata = ObjectMapper().readValue(
+            metadata = objectMapper.readValue(
                 rs.getString("metadata") ?: "{}",
-                TypeFactory.defaultInstance()
-                    .constructMapType(HashMap::class.java, String::class.java, String::class.java)
+                metadataMapType
             ),
         )
     }
@@ -62,7 +61,7 @@ class EmbeddingRepository(
             "id" to id,
             "content" to content,
             "embedding" to PGvector(vector),
-            "metadata" to jacksonObjectMapper().writeValueAsString(metadata),
+            "metadata" to objectMapper.writeValueAsString(metadata),
             "timestamp" to timestamp)
 
         if (textEmbedding == null) {
@@ -133,5 +132,11 @@ class EmbeddingRepository(
            ORDER BY similarity DESC
            LIMIT :numMatches
        """, params, rowMapper).requireNoNulls()
+    }
+
+    companion object {
+        private val objectMapper: ObjectMapper = jacksonObjectMapper()
+        private val metadataMapType = TypeFactory.defaultInstance()
+            .constructMapType(HashMap::class.java, String::class.java, String::class.java)
     }
 }
