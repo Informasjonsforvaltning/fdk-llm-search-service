@@ -14,10 +14,6 @@ import java.time.Instant
 class HarvestEventProducer(
     private val kafkaTemplate: KafkaTemplate<String, HarvestEvent>
 ) {
-    companion object {
-        private val logger: Logger = LoggerFactory.getLogger(HarvestEventProducer::class.java)
-    }
-
     /**
      * Map RdfParseResourceType to DataType enum
      */
@@ -43,32 +39,15 @@ class HarvestEventProducer(
         startTime: Instant,
         endTime: Instant
     ) {
-        if (harvestRunId == null) {
-            logger.debug("Skipping harvest event - harvestRunId is null for fdkId: $fdkId")
-            return
-        }
-
-        try {
-            val event = HarvestEvent.newBuilder()
-                .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
-                .setRunId(harvestRunId)
-                .setDataType(mapResourceTypeToDataType(resourceType))
-                .setFdkId(fdkId)
-                .setResourceUri(uri)
-                .setStartTime(startTime.toString())
-                .setEndTime(endTime.toString())
-                .setDataSourceId(null)
-                .setDataSourceUrl(null)
-                .setAcceptHeader(null)
-                .setErrorMessage(null)
-                .setChangedResourcesCount(null)
-                .setRemovedResourcesCount(null)
-                .build()
-
-            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
-            logger.debug("Produced harvest success event for fdkId: $fdkId, harvestRunId: $harvestRunId")
-        } catch (e: Exception) {
-            logger.error("Error producing harvest success event for fdkId: $fdkId", e)
+        sendHarvestEvent(harvestRunId, fdkId, "harvest success event") { runId ->
+            buildHarvestEvent(
+                harvestRunId = runId,
+                dataType = mapResourceTypeToDataType(resourceType),
+                fdkId = fdkId,
+                uri = uri,
+                startTime = startTime,
+                endTime = endTime,
+            )
         }
     }
 
@@ -84,32 +63,16 @@ class HarvestEventProducer(
         endTime: Instant,
         errorMessage: String
     ) {
-        if (harvestRunId == null) {
-            logger.debug("Skipping harvest event - harvestRunId is null for fdkId: $fdkId")
-            return
-        }
-
-        try {
-            val event = HarvestEvent.newBuilder()
-                .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
-                .setRunId(harvestRunId)
-                .setDataType(mapResourceTypeToDataType(resourceType))
-                .setFdkId(fdkId)
-                .setResourceUri(uri)
-                .setStartTime(startTime.toString())
-                .setEndTime(endTime.toString())
-                .setErrorMessage(errorMessage)
-                .setDataSourceId(null)
-                .setDataSourceUrl(null)
-                .setAcceptHeader(null)
-                .setChangedResourcesCount(null)
-                .setRemovedResourcesCount(null)
-                .build()
-
-            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
-            logger.debug("Produced harvest failure event for fdkId: $fdkId, harvestRunId: $harvestRunId")
-        } catch (e: Exception) {
-            logger.error("Error producing harvest failure event for fdkId: $fdkId", e)
+        sendHarvestEvent(harvestRunId, fdkId, "harvest failure event") { runId ->
+            buildHarvestEvent(
+                harvestRunId = runId,
+                dataType = mapResourceTypeToDataType(resourceType),
+                fdkId = fdkId,
+                uri = uri,
+                startTime = startTime,
+                endTime = endTime,
+                errorMessage = errorMessage,
+            )
         }
     }
 
@@ -124,32 +87,15 @@ class HarvestEventProducer(
         startTime: Instant,
         endTime: Instant
     ) {
-        if (harvestRunId == null) {
-            logger.debug("Skipping harvest event - harvestRunId is null for fdkId: $fdkId")
-            return
-        }
-
-        try {
-            val event = HarvestEvent.newBuilder()
-                .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
-                .setRunId(harvestRunId)
-                .setDataType(dataType)
-                .setFdkId(fdkId)
-                .setResourceUri(uri)
-                .setStartTime(startTime.toString())
-                .setEndTime(endTime.toString())
-                .setDataSourceId(null)
-                .setDataSourceUrl(null)
-                .setAcceptHeader(null)
-                .setErrorMessage(null)
-                .setChangedResourcesCount(null)
-                .setRemovedResourcesCount(null)
-                .build()
-
-            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
-            logger.debug("Produced harvest deletion success event for fdkId: $fdkId, harvestRunId: $harvestRunId")
-        } catch (e: Exception) {
-            logger.error("Error producing harvest deletion success event for fdkId: $fdkId", e)
+        sendHarvestEvent(harvestRunId, fdkId, "harvest deletion success event") { runId ->
+            buildHarvestEvent(
+                harvestRunId = runId,
+                dataType = dataType,
+                fdkId = fdkId,
+                uri = uri,
+                startTime = startTime,
+                endTime = endTime,
+            )
         }
     }
 
@@ -165,33 +111,63 @@ class HarvestEventProducer(
         endTime: Instant,
         errorMessage: String
     ) {
+        sendHarvestEvent(harvestRunId, fdkId, "harvest deletion failure event") { runId ->
+            buildHarvestEvent(
+                harvestRunId = runId,
+                dataType = dataType,
+                fdkId = fdkId,
+                uri = uri,
+                startTime = startTime,
+                endTime = endTime,
+                errorMessage = errorMessage,
+            )
+        }
+    }
+
+    private fun buildHarvestEvent(
+        harvestRunId: String,
+        dataType: DataType,
+        fdkId: String,
+        uri: String?,
+        startTime: Instant,
+        endTime: Instant,
+        errorMessage: String? = null,
+    ): HarvestEvent = HarvestEvent.newBuilder()
+        .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
+        .setRunId(harvestRunId)
+        .setDataType(dataType)
+        .setFdkId(fdkId)
+        .setResourceUri(uri)
+        .setStartTime(startTime.toString())
+        .setEndTime(endTime.toString())
+        .setErrorMessage(errorMessage)
+        .setDataSourceId(null)
+        .setDataSourceUrl(null)
+        .setAcceptHeader(null)
+        .setChangedResourcesCount(null)
+        .setRemovedResourcesCount(null)
+        .build()
+
+    private fun sendHarvestEvent(
+        harvestRunId: String?,
+        fdkId: String,
+        eventDescription: String,
+        buildEvent: (String) -> HarvestEvent,
+    ) {
         if (harvestRunId == null) {
             logger.debug("Skipping harvest event - harvestRunId is null for fdkId: $fdkId")
             return
         }
 
         try {
-            val event = HarvestEvent.newBuilder()
-                .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
-                .setRunId(harvestRunId)
-                .setDataType(dataType)
-                .setFdkId(fdkId)
-                .setResourceUri(uri)
-                .setStartTime(startTime.toString())
-                .setEndTime(endTime.toString())
-                .setErrorMessage(errorMessage)
-                .setDataSourceId(null)
-                .setDataSourceUrl(null)
-                .setAcceptHeader(null)
-                .setChangedResourcesCount(null)
-                .setRemovedResourcesCount(null)
-                .build()
-
-            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
-            logger.debug("Produced harvest deletion failure event for fdkId: $fdkId, harvestRunId: $harvestRunId")
+            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, buildEvent(harvestRunId))
+            logger.debug("Produced $eventDescription for fdkId: $fdkId, harvestRunId: $harvestRunId")
         } catch (e: Exception) {
-            logger.error("Error producing harvest deletion failure event for fdkId: $fdkId", e)
+            logger.error("Error producing $eventDescription for fdkId: $fdkId", e)
         }
     }
-}
 
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(HarvestEventProducer::class.java)
+    }
+}
