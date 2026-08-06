@@ -16,31 +16,31 @@ class CircuitBreakerConsumerConfig(
 
     init {
         logger.debug("Configuring circuit breaker event listener")
-        circuitBreakerRegistry.circuitBreaker("rdf-parse").eventPublisher.onStateTransition { event: CircuitBreakerOnStateTransitionEvent ->
+        circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.RDF_PARSE).eventPublisher.onStateTransition { event: CircuitBreakerOnStateTransitionEvent ->
             when (event.stateTransition) {
                 StateTransition.CLOSED_TO_OPEN,
                 StateTransition.CLOSED_TO_FORCED_OPEN,
-                StateTransition.HALF_OPEN_TO_OPEN -> kafkaManager.pause("rdf-parse")
+                StateTransition.HALF_OPEN_TO_OPEN -> kafkaManager.pause(CircuitBreakerNames.RDF_PARSE)
 
                 StateTransition.OPEN_TO_HALF_OPEN,
                 StateTransition.HALF_OPEN_TO_CLOSED,
                 StateTransition.FORCED_OPEN_TO_CLOSED,
-                StateTransition.FORCED_OPEN_TO_HALF_OPEN -> kafkaManager.resume("rdf-parse")
+                StateTransition.FORCED_OPEN_TO_HALF_OPEN -> kafkaManager.resume(CircuitBreakerNames.RDF_PARSE)
 
                 else -> throw IllegalStateException("Unknown transition state: " + event.stateTransition)
             }
         }
 
-        circuitBreakerRegistry.circuitBreaker("remove").eventPublisher.onStateTransition { event: CircuitBreakerOnStateTransitionEvent ->
+        circuitBreakerRegistry.circuitBreaker(CircuitBreakerNames.REMOVE).eventPublisher.onStateTransition { event: CircuitBreakerOnStateTransitionEvent ->
             when (event.stateTransition) {
                 StateTransition.CLOSED_TO_OPEN,
                 StateTransition.CLOSED_TO_FORCED_OPEN,
-                StateTransition.HALF_OPEN_TO_OPEN -> kafkaManager.pause("remove")
+                StateTransition.HALF_OPEN_TO_OPEN -> kafkaManager.pause(CircuitBreakerNames.REMOVE)
 
                 StateTransition.OPEN_TO_HALF_OPEN,
                 StateTransition.HALF_OPEN_TO_CLOSED,
                 StateTransition.FORCED_OPEN_TO_CLOSED,
-                StateTransition.FORCED_OPEN_TO_HALF_OPEN -> kafkaManager.resume("remove")
+                StateTransition.FORCED_OPEN_TO_HALF_OPEN -> kafkaManager.resume(CircuitBreakerNames.REMOVE)
 
                 else -> throw IllegalStateException("Unknown transition state: " + event.stateTransition)
             }

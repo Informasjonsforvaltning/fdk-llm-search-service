@@ -1,5 +1,6 @@
 package no.digdir.fdk.search.llm.kafka
 
+import no.digdir.fdk.search.llm.configuration.CircuitBreakerNames
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
@@ -16,16 +17,16 @@ class KafkaRemovedEventConsumer(
 
     @KafkaListener(
         topics = [
-            "dataset-events",
-            "data-service-events",
-            "concept-events",
-            "information-model-events",
-            "event-events",
-            "service-events"],
+            KafkaTopics.DATASET_EVENTS,
+            KafkaTopics.DATA_SERVICE_EVENTS,
+            KafkaTopics.CONCEPT_EVENTS,
+            KafkaTopics.INFORMATION_MODEL_EVENTS,
+            KafkaTopics.EVENT_EVENTS,
+            KafkaTopics.SERVICE_EVENTS],
         groupId = "fdk-llm-search-service",
         concurrency = "4",
         containerFactory = "kafkaListenerContainerFactory",
-        id = "remove"
+        id = CircuitBreakerNames.REMOVE
     )
     fun listen(record: ConsumerRecord<String, GenericRecord>, ack: Acknowledgment) {
         try {

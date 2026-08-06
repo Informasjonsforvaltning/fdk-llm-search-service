@@ -22,8 +22,8 @@ class CircuitBreakerRegistryConfig {
             .build()
 
         val registry = CircuitBreakerRegistry.of(config)
-        registry.circuitBreaker("rdf-parse")
-        registry.circuitBreaker("remove")
+        registry.circuitBreaker(CircuitBreakerNames.RDF_PARSE)
+        registry.circuitBreaker(CircuitBreakerNames.REMOVE)
         return registry
     }
 }

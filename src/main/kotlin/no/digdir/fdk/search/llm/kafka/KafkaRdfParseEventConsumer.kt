@@ -1,5 +1,6 @@
 package no.digdir.fdk.search.llm.kafka
 
+import no.digdir.fdk.search.llm.configuration.CircuitBreakerNames
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
@@ -16,11 +17,11 @@ class KafkaRdfParseEventConsumer(
 ) {
 
     @KafkaListener(
-        topics = ["rdf-parse-events"],
+        topics = [KafkaTopics.RDF_PARSE_EVENTS],
         groupId = "fdk-llm-search-service",
         containerFactory = "kafkaListenerContainerFactory",
         concurrency = "4",
-        id = "rdf-parse"
+        id = CircuitBreakerNames.RDF_PARSE
     )
     fun listen(record: ConsumerRecord<String, GenericRecord>, ack: Acknowledgment) {
         try {

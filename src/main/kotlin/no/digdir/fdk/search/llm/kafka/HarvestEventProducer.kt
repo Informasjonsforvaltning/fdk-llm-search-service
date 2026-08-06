@@ -80,7 +80,7 @@ class HarvestEventProducer(
                 .setRemovedResourcesCount(null)
                 .build()
 
-            kafkaTemplate.send("harvest-events", harvestRunId, event)
+            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
             logger.debug("Produced harvest success event for fdkId: $fdkId, harvestRunId: $harvestRunId")
         } catch (e: Exception) {
             logger.error("Error producing harvest success event for fdkId: $fdkId", e)
@@ -121,7 +121,7 @@ class HarvestEventProducer(
                 .setRemovedResourcesCount(null)
                 .build()
 
-            kafkaTemplate.send("harvest-events", harvestRunId, event)
+            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
             logger.debug("Produced harvest failure event for fdkId: $fdkId, harvestRunId: $harvestRunId")
         } catch (e: Exception) {
             logger.error("Error producing harvest failure event for fdkId: $fdkId", e)
@@ -161,7 +161,7 @@ class HarvestEventProducer(
                 .setRemovedResourcesCount(null)
                 .build()
 
-            kafkaTemplate.send("harvest-events", harvestRunId, event)
+            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
             logger.debug("Produced harvest deletion success event for fdkId: $fdkId, harvestRunId: $harvestRunId")
         } catch (e: Exception) {
             logger.error("Error producing harvest deletion success event for fdkId: $fdkId", e)
@@ -202,7 +202,7 @@ class HarvestEventProducer(
                 .setRemovedResourcesCount(null)
                 .build()
 
-            kafkaTemplate.send("harvest-events", harvestRunId, event)
+            kafkaTemplate.send(KafkaTopics.HARVEST_EVENTS, harvestRunId, event)
             logger.debug("Produced harvest deletion failure event for fdkId: $fdkId, harvestRunId: $harvestRunId")
         } catch (e: Exception) {
             logger.error("Error producing harvest deletion failure event for fdkId: $fdkId", e)
