@@ -3,8 +3,6 @@ package no.digdir.fdk.search.llm.kafka
 import no.digdir.fdk.search.llm.configuration.CircuitBreakerNames
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
@@ -30,9 +28,5 @@ class KafkaRdfParseEventConsumer(
         } catch (e: Exception) {
             ack.nack(Duration.ZERO)
         }
-    }
-
-    companion object {
-        private val LOGGER: Logger = LoggerFactory.getLogger(KafkaRdfParseEventConsumer::class.java)
     }
 }

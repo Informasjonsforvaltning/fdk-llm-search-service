@@ -10,20 +10,20 @@ class KafkaManager(
     private val registry: KafkaListenerEndpointRegistry
 ) {
     fun pause(id: String) {
-        LOGGER.debug("Pausing kafka listener containers with id: $id")
+        logger.debug("Pausing kafka listener containers with id: $id")
         registry.listenerContainers
-            .filter { it.listenerId.equals(id) }
+            .filter { it.listenerId == id }
             .forEach { it.pause() }
     }
 
     fun resume(id: String) {
-        LOGGER.debug("Resuming kafka listener containers with id: $id")
+        logger.debug("Resuming kafka listener containers with id: $id")
         registry.listenerContainers
-            .filter { it.listenerId.equals(id) }
+            .filter { it.listenerId == id }
             .forEach { it.resume() }
     }
 
     companion object {
-        private val LOGGER: Logger = LoggerFactory.getLogger(KafkaManager::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(KafkaManager::class.java)
     }
 }
