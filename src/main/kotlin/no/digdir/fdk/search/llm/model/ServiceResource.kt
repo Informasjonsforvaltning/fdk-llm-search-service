@@ -3,7 +3,7 @@ package no.digdir.fdk.search.llm.model
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Service(
+data class ServiceResource(
     val uri: String?,
     val title: LocalizedStrings?,
     val catalog: Catalog?,
@@ -31,4 +31,3 @@ data class ServiceOrganization(
     val prefLabel: LocalizedStrings?,
     val title: LocalizedStrings?,
 )
-

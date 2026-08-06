@@ -316,7 +316,7 @@ val TEST_INFORMATION_MODEL_ALL_FIELDS = InformationModel(
     subjects = listOf("subject1", "subject2")
 )
 
-val TEST_SERVICE_ALL_FIELDS = no.digdir.fdk.search.llm.model.Service(
+val TEST_SERVICE_ALL_FIELDS = ServiceResource(
     uri = "service-uri",
     title = LocalizedStrings("NB Service Title", null, null, null),
     catalog = Catalog(

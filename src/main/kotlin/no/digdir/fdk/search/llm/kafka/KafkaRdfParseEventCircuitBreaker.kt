@@ -64,7 +64,7 @@ open class KafkaRdfParseEventCircuitBreaker(
                 embeddingService.storeInformationModelEmbedding(fdkId, informationModel, timestamp)
             }
             RdfParseResourceType.SERVICE -> {
-                val serviceModel = mapper.readValue(data, no.digdir.fdk.search.llm.model.Service::class.java)
+                val serviceModel = mapper.readValue(data, ServiceResource::class.java)
                 embeddingService.storeServiceEmbedding(fdkId, serviceModel, timestamp)
             }
             RdfParseResourceType.EVENT -> {

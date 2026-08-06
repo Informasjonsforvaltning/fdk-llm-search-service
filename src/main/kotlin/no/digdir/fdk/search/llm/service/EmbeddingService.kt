@@ -189,7 +189,7 @@ open class EmbeddingService(
     /**
      * Store text embedding for Service
      */
-    open fun storeServiceEmbedding(fdkId: String, service: no.digdir.fdk.search.llm.model.Service, timestamp: Long) {
+    open fun storeServiceEmbedding(fdkId: String, service: ServiceResource, timestamp: Long) {
         // Check timestamp first to avoid expensive embedding generation for outdated messages
         if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
             logger.debug("Skipped saving embedding for service {} - message timestamp {} is not newer than existing embedding", fdkId, timestamp)
