@@ -7,9 +7,7 @@ import no.digdir.fdk.search.llm.configuration.AiProperties
 import org.springframework.stereotype.Service
 
 @Service
-class VertexService(
-    private val aiProperties: AiProperties,
-) {
+class VertexService(private val aiProperties: AiProperties) {
     private val maxInputTokensForEmbedding = 2048
 
     private val embeddingModel: EmbeddingModel =

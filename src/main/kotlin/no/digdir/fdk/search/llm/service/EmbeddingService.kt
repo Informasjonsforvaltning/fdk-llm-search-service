@@ -19,25 +19,18 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
-open class EmbeddingService(
-    private val vertexService: VertexService,
-    private val embeddingRepository: EmbeddingRepository,
-) {
+open class EmbeddingService(private val vertexService: VertexService, private val embeddingRepository: EmbeddingRepository) {
     /**
      * Store text embedding in the database as pgvector
      */
-    open fun storeDatasetEmbedding(
-        fdkId: String,
-        dataset: Dataset,
-        timestamp: Long,
-    ) {
+    open fun storeDatasetEmbedding(fdkId: String, dataset: Dataset, timestamp: Long) {
         if (!shouldProcess(fdkId, timestamp, "dataset")) return
 
         val themes =
             (
                 (dataset.theme?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
                     (dataset.losTheme?.mapNotNull { it.name?.valueByPriority() } ?: emptyList())
-            ).toSet()
+                ).toSet()
 
         val formats =
             dataset.distribution?.flatMap { it.fdkFormat?.mapNotNull { format -> format.code }?.toSet() ?: emptySet() } ?: emptySet()
@@ -85,18 +78,14 @@ open class EmbeddingService(
     /**
      * Store text embedding for Concept
      */
-    open fun storeConceptEmbedding(
-        fdkId: String,
-        concept: Concept,
-        timestamp: Long,
-    ) {
+    open fun storeConceptEmbedding(fdkId: String, concept: Concept, timestamp: Long) {
         if (!shouldProcess(fdkId, timestamp, "concept")) return
 
         val keywords =
             (
                 (concept.altLabel?.mapNotNull { it.valueByPriority() } ?: emptyList()) +
                     (concept.hiddenLabel?.mapNotNull { it.valueByPriority() } ?: emptyList())
-            ).toSet()
+                ).toSet()
 
         val summary =
             """
@@ -124,18 +113,14 @@ open class EmbeddingService(
     /**
      * Store text embedding for DataService
      */
-    open fun storeDataServiceEmbedding(
-        fdkId: String,
-        dataService: DataService,
-        timestamp: Long,
-    ) {
+    open fun storeDataServiceEmbedding(fdkId: String, dataService: DataService, timestamp: Long) {
         if (!shouldProcess(fdkId, timestamp, "data service")) return
 
         val themes =
             (
                 (dataService.theme?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
                     (dataService.losTheme?.mapNotNull { it.name?.valueByPriority() } ?: emptyList())
-            ).toSet()
+                ).toSet()
 
         val formats = dataService.fdkFormat?.mapNotNull { it.code }?.toSet() ?: emptySet()
         val keywords = (dataService.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
@@ -173,18 +158,14 @@ open class EmbeddingService(
     /**
      * Store text embedding for InformationModel
      */
-    open fun storeInformationModelEmbedding(
-        fdkId: String,
-        informationModel: InformationModel,
-        timestamp: Long,
-    ) {
+    open fun storeInformationModelEmbedding(fdkId: String, informationModel: InformationModel, timestamp: Long) {
         if (!shouldProcess(fdkId, timestamp, "information model")) return
 
         val themes =
             (
                 (informationModel.theme?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
                     (informationModel.losTheme?.mapNotNull { it.name?.valueByPriority() } ?: emptyList())
-            ).toSet()
+                ).toSet()
 
         val keywords = (informationModel.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
 
@@ -226,18 +207,14 @@ open class EmbeddingService(
     /**
      * Store text embedding for Service
      */
-    open fun storeServiceEmbedding(
-        fdkId: String,
-        service: ServiceResource,
-        timestamp: Long,
-    ) {
+    open fun storeServiceEmbedding(fdkId: String, service: ServiceResource, timestamp: Long) {
         if (!shouldProcess(fdkId, timestamp, "service")) return
 
         val themes =
             (
                 (service.euDataThemes?.mapNotNull { it.title?.valueByPriority() ?: it.code } ?: emptyList()) +
                     (service.losTheme?.mapNotNull { it.name?.valueByPriority() } ?: emptyList())
-            ).toSet()
+                ).toSet()
 
         val keywords = (service.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
         val owners = service.ownedBy?.mapNotNull { it.prefLabel?.valueByPriority() ?: it.title?.valueByPriority() } ?: emptyList()
@@ -276,11 +253,7 @@ open class EmbeddingService(
     /**
      * Store text embedding for Event
      */
-    open fun storeEventEmbedding(
-        fdkId: String,
-        event: Event,
-        timestamp: Long,
-    ) {
+    open fun storeEventEmbedding(fdkId: String, event: Event, timestamp: Long) {
         if (!shouldProcess(fdkId, timestamp, "event")) return
 
         val specializedType =
@@ -323,12 +296,7 @@ open class EmbeddingService(
      * Perform similarity search
      * @param type If null, searches across all resource types. Otherwise filters by the specified type.
      */
-    fun similaritySearch(
-        query: String,
-        type: SearchType?,
-        simThreshold: Float,
-        numMatches: Int,
-    ): List<TextEmbedding> {
+    fun similaritySearch(query: String, type: SearchType?, simThreshold: Float, numMatches: Int): List<TextEmbedding> {
         val embedding = vertexService.embed(query)
         return embeddingRepository.searchSimilar(type, embedding.vector(), simThreshold, numMatches)
     }
@@ -339,10 +307,7 @@ open class EmbeddingService(
      *
      * @return true if the embedding was marked as deleted, false if skipped due to older timestamp
      */
-    fun markDeletedByIdAndBeforeTimestamp(
-        id: String,
-        timestamp: Long,
-    ): Boolean {
+    fun markDeletedByIdAndBeforeTimestamp(id: String, timestamp: Long): Boolean {
         val deleted = embeddingRepository.markDeletedByIdAndBeforeTimestamp(id, timestamp)
         if (!deleted) {
             logger.debug(
@@ -354,11 +319,7 @@ open class EmbeddingService(
         return deleted
     }
 
-    private fun shouldProcess(
-        fdkId: String,
-        timestamp: Long,
-        resourceLabel: String,
-    ): Boolean {
+    private fun shouldProcess(fdkId: String, timestamp: Long, resourceLabel: String): Boolean {
         if (!embeddingRepository.shouldProcessMessage(fdkId, timestamp)) {
             logger.debug(
                 "Skipped saving embedding for {} {} - message timestamp {} is not newer than existing embedding",
@@ -371,12 +332,7 @@ open class EmbeddingService(
         return true
     }
 
-    private fun buildMetadata(
-        type: SearchType,
-        title: String?,
-        publisherLabel: String?,
-        publisherId: String?,
-    ): Map<String, String?> =
+    private fun buildMetadata(type: SearchType, title: String?, publisherLabel: String?, publisherId: String?): Map<String, String?> =
         mapOf(
             "type" to type.name,
             "title" to title,
@@ -384,12 +340,7 @@ open class EmbeddingService(
             "publisherId" to publisherId,
         )
 
-    private fun saveEmbedding(
-        fdkId: String,
-        summary: String,
-        timestamp: Long,
-        metadata: Map<String, String?>,
-    ) {
+    private fun saveEmbedding(fdkId: String, summary: String, timestamp: Long, metadata: Map<String, String?>) {
         embeddingRepository.saveEmbedding(
             fdkId,
             summary,

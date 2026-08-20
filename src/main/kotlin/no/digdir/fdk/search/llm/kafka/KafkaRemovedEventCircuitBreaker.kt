@@ -22,29 +22,27 @@ open class KafkaRemovedEventCircuitBreaker(
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
 ) : AbstractKafkaCircuitBreaker(
-        circuitBreakerRegistry,
-        transactionManager,
-        CircuitBreakerNames.REMOVE,
-    ) {
-    private fun resourceTypeFromSchema(schemaName: String?): RdfParseResourceType? =
-        when (schemaName) {
-            "no.fdk.dataset.DatasetEvent" -> RdfParseResourceType.DATASET
-            "no.fdk.dataservice.DataServiceEvent" -> RdfParseResourceType.DATA_SERVICE
-            "no.fdk.concept.ConceptEvent" -> RdfParseResourceType.CONCEPT
-            "no.fdk.informationmodel.InformationModelEvent" -> RdfParseResourceType.INFORMATION_MODEL
-            "no.fdk.service.ServiceEvent" -> RdfParseResourceType.SERVICE
-            "no.fdk.event.EventEvent" -> RdfParseResourceType.EVENT
-            else -> null
-        }
+    circuitBreakerRegistry,
+    transactionManager,
+    CircuitBreakerNames.REMOVE,
+) {
+    private fun resourceTypeFromSchema(schemaName: String?): RdfParseResourceType? = when (schemaName) {
+        "no.fdk.dataset.DatasetEvent" -> RdfParseResourceType.DATASET
+        "no.fdk.dataservice.DataServiceEvent" -> RdfParseResourceType.DATA_SERVICE
+        "no.fdk.concept.ConceptEvent" -> RdfParseResourceType.CONCEPT
+        "no.fdk.informationmodel.InformationModelEvent" -> RdfParseResourceType.INFORMATION_MODEL
+        "no.fdk.service.ServiceEvent" -> RdfParseResourceType.SERVICE
+        "no.fdk.event.EventEvent" -> RdfParseResourceType.EVENT
+        else -> null
+    }
 
-    private fun isRemovedEvent(typeStr: String?): Boolean =
-        when (typeStr) {
-            "DATASET_REMOVED", "DATA_SERVICE_REMOVED", "CONCEPT_REMOVED",
-            "INFORMATION_MODEL_REMOVED", "SERVICE_REMOVED", "EVENT_REMOVED",
-            -> true
+    private fun isRemovedEvent(typeStr: String?): Boolean = when (typeStr) {
+        "DATASET_REMOVED", "DATA_SERVICE_REMOVED", "CONCEPT_REMOVED",
+        "INFORMATION_MODEL_REMOVED", "SERVICE_REMOVED", "EVENT_REMOVED",
+        -> true
 
-            else -> false
-        }
+        else -> false
+    }
 
     override fun processInTransaction(record: ConsumerRecord<String, GenericRecord>) {
         logger.debug("Received message - offset: " + record.offset())

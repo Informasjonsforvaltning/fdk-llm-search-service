@@ -3,10 +3,7 @@ package no.digdir.fdk.search.llm.configuration
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("ai")
-data class AiProperties(
-    var vertex: VertexProperties? = null,
-    var search: SearchProperties? = null,
-)
+data class AiProperties(var vertex: VertexProperties? = null, var search: SearchProperties? = null)
 
 data class VertexProperties(
     var endpoint: String? = null,
@@ -19,7 +16,4 @@ data class VertexProperties(
     var temperature: Float? = null,
 )
 
-data class SearchProperties(
-    var numMatches: Int = 10,
-    var simThreshold: Float = 0.3f,
-)
+data class SearchProperties(var numMatches: Int = 10, var simThreshold: Float = 0.3f)

@@ -17,9 +17,9 @@ data class LlmSearchOperation(
     val query: String,
     @param:Schema(
         description =
-            "Resource type to filter search results. Defaults to DATASET if not specified. " +
-                "Use ALL to search across all resource types. Valid values: " +
-                "ALL, CONCEPT, DATASET, DATA_SERVICE, INFORMATION_MODEL, SERVICE, EVENT",
+        "Resource type to filter search results. Defaults to DATASET if not specified. " +
+            "Use ALL to search across all resource types. Valid values: " +
+            "ALL, CONCEPT, DATASET, DATA_SERVICE, INFORMATION_MODEL, SERVICE, EVENT",
         example = "DATASET",
         allowableValues = ["ALL", "CONCEPT", "DATASET", "DATA_SERVICE", "INFORMATION_MODEL", "SERVICE", "EVENT"],
         required = false,

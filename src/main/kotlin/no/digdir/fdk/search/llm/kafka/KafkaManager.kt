@@ -6,9 +6,7 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.stereotype.Component
 
 @Component
-class KafkaManager(
-    private val registry: KafkaListenerEndpointRegistry,
-) {
+class KafkaManager(private val registry: KafkaListenerEndpointRegistry) {
     fun pause(id: String) {
         logger.debug("Pausing kafka listener containers with id: $id")
         registry.listenerContainers

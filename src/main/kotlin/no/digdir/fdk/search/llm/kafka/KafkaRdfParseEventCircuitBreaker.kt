@@ -29,10 +29,10 @@ open class KafkaRdfParseEventCircuitBreaker(
     circuitBreakerRegistry: CircuitBreakerRegistry,
     transactionManager: PlatformTransactionManager,
 ) : AbstractKafkaCircuitBreaker(
-        circuitBreakerRegistry,
-        transactionManager,
-        CircuitBreakerNames.RDF_PARSE,
-    ) {
+    circuitBreakerRegistry,
+    transactionManager,
+    CircuitBreakerNames.RDF_PARSE,
+) {
     private fun resourceTypeFromRecord(record: GenericRecord): RdfParseResourceType {
         val typeStr = (record.get("resourceType") ?: "").toString()
         return when (typeStr) {
@@ -46,10 +46,7 @@ open class KafkaRdfParseEventCircuitBreaker(
         }
     }
 
-    private fun storeEmbedding(
-        record: GenericRecord,
-        resourceType: RdfParseResourceType,
-    ) {
+    private fun storeEmbedding(record: GenericRecord, resourceType: RdfParseResourceType) {
         val fdkId = (record.get("fdkId") ?: "").toString()
         val data = (record.get("data") ?: "").toString()
         val timestamp = runCatching { (record.get("timestamp") as? Number)?.toLong() }.getOrNull() ?: 0L
