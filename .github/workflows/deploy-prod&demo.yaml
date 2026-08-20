@@ -22,6 +22,7 @@ jobs:
       coverage_file_path: ./target/site/jacoco/jacoco.xml
     secrets:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   deploy-prod:
     name: Deploy to prod environment
