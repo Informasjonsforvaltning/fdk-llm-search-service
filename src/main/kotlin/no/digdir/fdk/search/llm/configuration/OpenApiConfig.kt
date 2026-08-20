@@ -8,13 +8,12 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class OpenApiConfig {
     @Bean
-    fun openAPI(): OpenAPI =
-        OpenAPI()
-            .info(
-                Info()
-                    .title("FDK LLM Search Service API")
-                    .description(
-                        """
+    fun openAPI(): OpenAPI = OpenAPI()
+        .info(
+            Info()
+                .title("FDK LLM Search Service API")
+                .description(
+                    """
                         A REST API providing intelligent, context-aware search capabilities for Norway's national data catalog using Large Language Models (LLM).
                         
                         ## About Data.norge.no
@@ -56,7 +55,7 @@ class OpenApiConfig {
                         All search queries are logged for analysis and service improvement purposes. No personally identifiable information is stored, and queries cannot be traced back to individual users.
                         
                         For more information about finding and using data, visit [data.norge.no](https://data.norge.no/nb/docs/finding-data) or learn more [about the platform](https://data.norge.no/nb/about).
-                        """.trimIndent(),
-                    ).version("1.0.0"),
-            )
+                    """.trimIndent(),
+                ).version("1.0.0"),
+        )
 }

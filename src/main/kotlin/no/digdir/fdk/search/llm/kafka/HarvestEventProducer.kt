@@ -11,21 +11,18 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
-class HarvestEventProducer(
-    private val kafkaTemplate: KafkaTemplate<String, HarvestEvent>,
-) {
+class HarvestEventProducer(private val kafkaTemplate: KafkaTemplate<String, HarvestEvent>) {
     /**
      * Map RdfParseResourceType to DataType enum
      */
-    internal fun mapResourceTypeToDataType(resourceType: RdfParseResourceType): DataType =
-        when (resourceType) {
-            RdfParseResourceType.DATASET -> DataType.dataset
-            RdfParseResourceType.DATA_SERVICE -> DataType.dataservice
-            RdfParseResourceType.CONCEPT -> DataType.concept
-            RdfParseResourceType.INFORMATION_MODEL -> DataType.informationmodel
-            RdfParseResourceType.SERVICE -> DataType.publicService
-            RdfParseResourceType.EVENT -> DataType.event
-        }
+    internal fun mapResourceTypeToDataType(resourceType: RdfParseResourceType): DataType = when (resourceType) {
+        RdfParseResourceType.DATASET -> DataType.dataset
+        RdfParseResourceType.DATA_SERVICE -> DataType.dataservice
+        RdfParseResourceType.CONCEPT -> DataType.concept
+        RdfParseResourceType.INFORMATION_MODEL -> DataType.informationmodel
+        RdfParseResourceType.SERVICE -> DataType.publicService
+        RdfParseResourceType.EVENT -> DataType.event
+    }
 
     /**
      * Produce harvest event when search indexing finishes successfully
@@ -131,30 +128,24 @@ class HarvestEventProducer(
         startTime: Instant,
         endTime: Instant,
         errorMessage: String? = null,
-    ): HarvestEvent =
-        HarvestEvent
-            .newBuilder()
-            .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
-            .setRunId(harvestRunId)
-            .setDataType(dataType)
-            .setFdkId(fdkId)
-            .setResourceUri(uri)
-            .setStartTime(startTime.toString())
-            .setEndTime(endTime.toString())
-            .setErrorMessage(errorMessage)
-            .setDataSourceId(null)
-            .setDataSourceUrl(null)
-            .setAcceptHeader(null)
-            .setChangedResourcesCount(null)
-            .setRemovedResourcesCount(null)
-            .build()
+    ): HarvestEvent = HarvestEvent
+        .newBuilder()
+        .setPhase(HarvestPhase.AI_SEARCH_PROCESSING)
+        .setRunId(harvestRunId)
+        .setDataType(dataType)
+        .setFdkId(fdkId)
+        .setResourceUri(uri)
+        .setStartTime(startTime.toString())
+        .setEndTime(endTime.toString())
+        .setErrorMessage(errorMessage)
+        .setDataSourceId(null)
+        .setDataSourceUrl(null)
+        .setAcceptHeader(null)
+        .setChangedResourcesCount(null)
+        .setRemovedResourcesCount(null)
+        .build()
 
-    private fun sendHarvestEvent(
-        harvestRunId: String?,
-        fdkId: String,
-        eventDescription: String,
-        buildEvent: (String) -> HarvestEvent,
-    ) {
+    private fun sendHarvestEvent(harvestRunId: String?, fdkId: String, eventDescription: String, buildEvent: (String) -> HarvestEvent) {
         if (harvestRunId == null) {
             logger.debug("Skipping harvest event - harvestRunId is null for fdkId: $fdkId")
             return

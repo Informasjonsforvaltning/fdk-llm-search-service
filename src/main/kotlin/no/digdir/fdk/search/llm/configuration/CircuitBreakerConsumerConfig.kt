@@ -9,10 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class CircuitBreakerConsumerConfig(
-    private val circuitBreakerRegistry: CircuitBreakerRegistry,
-    private val kafkaManager: KafkaManager,
-) {
+class CircuitBreakerConsumerConfig(private val circuitBreakerRegistry: CircuitBreakerRegistry, private val kafkaManager: KafkaManager) {
     init {
         logger.debug("Configuring circuit breaker event listener")
         circuitBreakerRegistry

@@ -91,17 +91,17 @@ class LlmSearchService(
 
         return LlmSearchResult(
             hits =
-                result.hits.map { hit ->
-                    val embedding = embeddings.find { it.id == hit.id }
-                    LlmSearchHit(
-                        id = hit.id,
-                        title = hit.name,
-                        description = hit.reason,
-                        type = embedding?.metadata?.get("type") ?: "",
-                        publisher = embedding?.metadata?.get("publisher") ?: "",
-                        publisherId = embedding?.metadata?.get("publisherId") ?: "",
-                    )
-                },
+            result.hits.map { hit ->
+                val embedding = embeddings.find { it.id == hit.id }
+                LlmSearchHit(
+                    id = hit.id,
+                    title = hit.name,
+                    description = hit.reason,
+                    type = embedding?.metadata?.get("type") ?: "",
+                    publisher = embedding?.metadata?.get("publisher") ?: "",
+                    publisherId = embedding?.metadata?.get("publisherId") ?: "",
+                )
+            },
         )
     }
 
@@ -213,10 +213,7 @@ class LlmSearchService(
         }
     }
 
-    private fun recordPhaseTimer(
-        phase: String,
-        nanos: Long,
-    ) {
+    private fun recordPhaseTimer(phase: String, nanos: Long) {
         Timer
             .builder("fdk_llm_search_phase_duration")
             .tag("phase", phase)
@@ -231,10 +228,7 @@ class LlmSearchService(
             .record(nanos, TimeUnit.NANOSECONDS)
     }
 
-    private fun recordHits(
-        stage: String,
-        hits: Int,
-    ) {
+    private fun recordHits(stage: String, hits: Int) {
         DistributionSummary
             .builder("fdk_llm_search_hits")
             .tag("stage", stage)
@@ -244,17 +238,16 @@ class LlmSearchService(
             .record(hits.toDouble())
     }
 
-    private fun serializeEmbeddingHits(embeddings: List<TextEmbedding>): String =
-        objectMapper.writeValueAsString(
-            embeddings.map { e ->
-                mapOf(
-                    "id" to e.id,
-                    "type" to e.metadata?.get("type"),
-                    "publisherId" to e.metadata?.get("publisherId"),
-                    "content" to e.content,
-                )
-            },
-        )
+    private fun serializeEmbeddingHits(embeddings: List<TextEmbedding>): String = objectMapper.writeValueAsString(
+        embeddings.map { e ->
+            mapOf(
+                "id" to e.id,
+                "type" to e.metadata?.get("type"),
+                "publisherId" to e.metadata?.get("publisherId"),
+                "content" to e.content,
+            )
+        },
+    )
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(LlmSearchService::class.java)

@@ -5,97 +5,52 @@ import com.fasterxml.jackson.annotation.JsonInclude
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class LocalizedStrings(
-    val nb: String?,
-    val nn: String?,
-    val no: String?,
-    val en: String?,
-)
+data class LocalizedStrings(val nb: String?, val nn: String?, val no: String?, val en: String?)
 
 fun LocalizedStrings.valueByPriority(): String? = nb ?: no ?: nn ?: en
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class EuDataTheme(
-    val title: LocalizedStrings?,
-    val code: String?,
-)
+data class EuDataTheme(val title: LocalizedStrings?, val code: String?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class LosNode(
-    val name: LocalizedStrings?,
-    val losPaths: List<String>?,
-)
+data class LosNode(val name: LocalizedStrings?, val losPaths: List<String>?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ReferenceDataCode(
-    val uri: String?,
-    val code: String?,
-    val prefLabel: LocalizedStrings?,
-)
+data class ReferenceDataCode(val uri: String?, val code: String?, val prefLabel: LocalizedStrings?)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Reference(
-    val referenceType: ReferenceDataCode?,
-    val source: ObjectWithURI?,
-)
+data class Reference(val referenceType: ReferenceDataCode?, val source: ObjectWithURI?)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class ObjectWithURI(
-    val uri: String?,
-)
+data class ObjectWithURI(val uri: String?)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class AssociativeRelation(
-    val description: LocalizedStrings?,
-    val related: String?,
-)
+data class AssociativeRelation(val description: LocalizedStrings?, val related: String?)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class GenericRelation(
-    val divisioncriterion: LocalizedStrings?,
-    val generalizes: String?,
-    val specializes: String?,
-)
+data class GenericRelation(val divisioncriterion: LocalizedStrings?, val generalizes: String?, val specializes: String?)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class PartitiveRelation(
-    val description: LocalizedStrings?,
-    val hasPart: String?,
-    val isPartOf: String?,
-)
+data class PartitiveRelation(val description: LocalizedStrings?, val hasPart: String?, val isPartOf: String?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class TextAndURI(
-    val text: LocalizedStrings?,
-)
+data class TextAndURI(val text: LocalizedStrings?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Definition(
-    val text: LocalizedStrings?,
-    val sources: List<TextAndURI>?,
-    val sourceRelationship: String?,
-)
+data class Definition(val text: LocalizedStrings?, val sources: List<TextAndURI>?, val sourceRelationship: String?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class HarvestMetadata(
-    val firstHarvested: String?,
-    val modified: String?,
-)
+data class HarvestMetadata(val firstHarvested: String?, val modified: String?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Metadata(
-    val firstHarvested: String?,
-    val modified: String?,
-    val deleted: Boolean?,
-    val timestamp: Long?,
-)
+data class Metadata(val firstHarvested: String?, val modified: String?, val deleted: Boolean?, val timestamp: Long?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -119,19 +74,11 @@ data class Collection(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Organization(
-    val id: String?,
-    val uri: String?,
-    val orgPath: String?,
-    val name: String?,
-    val prefLabel: LocalizedStrings?,
-)
+data class Organization(val id: String?, val uri: String?, val orgPath: String?, val name: String?, val prefLabel: LocalizedStrings?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Distribution(
-    val fdkFormat: List<MediaTypeOrExtent>?,
-)
+data class Distribution(val fdkFormat: List<MediaTypeOrExtent>?)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -144,8 +91,4 @@ data class MediaTypeOrExtent(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Temporal(
-    val uri: String?,
-    val startDate: String?,
-    val endDate: String?,
-)
+data class Temporal(val uri: String?, val startDate: String?, val endDate: String?)

@@ -56,11 +56,11 @@ class LlmSearchServiceTest {
             AIResult(
                 sensitive = false,
                 hits =
-                    listOf(
-                        AIResultHit("12345", "Kjøretøystatistikk", "Inneholder informasjon om Tesla-biler."),
-                        AIResultHit("12346", "Teknisk kjøretøyinformasjon", "Inneholder teknisk informasjon om elbiler."),
-                        AIResultHit("12347", "Kjøretøyopplysninger", "Inneholder informasjon om registrerte kjøretøy."),
-                    ),
+                listOf(
+                    AIResultHit("12345", "Kjøretøystatistikk", "Inneholder informasjon om Tesla-biler."),
+                    AIResultHit("12346", "Teknisk kjøretøyinformasjon", "Inneholder teknisk informasjon om elbiler."),
+                    AIResultHit("12347", "Kjøretøyopplysninger", "Inneholder informasjon om registrerte kjøretøy."),
+                ),
             )
 
         every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit

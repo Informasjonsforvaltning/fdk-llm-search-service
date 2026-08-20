@@ -19,8 +19,8 @@ data class LlmSearchHit(
     @param:Schema(
         description = "Explanation of why this resource matches the search query, formatted in Markdown",
         example =
-            "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, " +
-                "inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling.",
+        "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, " +
+            "inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling.",
     )
     val description: String,
     @param:Schema(

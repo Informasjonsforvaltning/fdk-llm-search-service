@@ -9,9 +9,7 @@ import javax.sql.DataSource
 
 @Configuration
 @EnableTransactionManagement
-class TransactionManagerConfig(
-    private val dataSource: DataSource,
-) {
+class TransactionManagerConfig(private val dataSource: DataSource) {
     @Bean
     fun transactionManager(): PlatformTransactionManager {
         val transactionManager = JdbcTransactionManager()

@@ -8,10 +8,7 @@ import org.springframework.web.context.request.WebRequest
 
 @Component
 class CustomBadRequestAttributes : DefaultErrorAttributes() {
-    override fun getErrorAttributes(
-        webRequest: WebRequest,
-        options: ErrorAttributeOptions,
-    ): Map<String, Any?> {
+    override fun getErrorAttributes(webRequest: WebRequest, options: ErrorAttributeOptions): Map<String, Any?> {
         val defaultAttributes = super.getErrorAttributes(webRequest, options)
 
         return if (defaultAttributes["status"] == HttpStatus.BAD_REQUEST.value()) {

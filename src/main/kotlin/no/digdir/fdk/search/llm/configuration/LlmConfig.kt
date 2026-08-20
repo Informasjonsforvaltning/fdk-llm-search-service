@@ -11,23 +11,21 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class LlmConfig {
     @Bean
-    fun chatModel(aiProperties: AiProperties): ChatModel =
-        VertexAiGeminiChatModel
-            .builder()
-            .project(aiProperties.vertex?.project)
-            .location(aiProperties.vertex?.location)
-            .temperature(aiProperties.vertex?.temperature)
-            .maxOutputTokens(aiProperties.vertex?.maxOutputTokens)
-            .topP(aiProperties.vertex?.topP)
-            .modelName(aiProperties.vertex?.llmModelName)
-            .responseMimeType("application/json")
-            .supportedCapabilities(Capability.RESPONSE_FORMAT_JSON_SCHEMA)
-            .build()
+    fun chatModel(aiProperties: AiProperties): ChatModel = VertexAiGeminiChatModel
+        .builder()
+        .project(aiProperties.vertex?.project)
+        .location(aiProperties.vertex?.location)
+        .temperature(aiProperties.vertex?.temperature)
+        .maxOutputTokens(aiProperties.vertex?.maxOutputTokens)
+        .topP(aiProperties.vertex?.topP)
+        .modelName(aiProperties.vertex?.llmModelName)
+        .responseMimeType("application/json")
+        .supportedCapabilities(Capability.RESPONSE_FORMAT_JSON_SCHEMA)
+        .build()
 
     @Bean
-    fun searchAssistant(chatModel: ChatModel): SearchAssistant =
-        AiServices
-            .builder(SearchAssistant::class.java)
-            .chatModel(chatModel)
-            .build()
+    fun searchAssistant(chatModel: ChatModel): SearchAssistant = AiServices
+        .builder(SearchAssistant::class.java)
+        .chatModel(chatModel)
+        .build()
 }

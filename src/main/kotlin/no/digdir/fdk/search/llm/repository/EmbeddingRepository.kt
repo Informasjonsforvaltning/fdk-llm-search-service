@@ -11,9 +11,7 @@ import org.springframework.stereotype.Component
 import java.sql.ResultSet
 
 @Component
-class EmbeddingRepository(
-    private val jdbcTemplate: NamedParameterJdbcTemplate,
-) {
+class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
     private val rowMapper: (ResultSet, rowNum: Int) -> TextEmbedding? = { rs, _ ->
         TextEmbedding(
             id = rs.getString("id"),
@@ -21,31 +19,27 @@ class EmbeddingRepository(
             deleted = rs.getBoolean("deleted"),
             timestamp = rs.getLong("timestamp"),
             metadata =
-                objectMapper.readValue(
-                    rs.getString("metadata") ?: "{}",
-                    metadataMapType,
-                ),
+            objectMapper.readValue(
+                rs.getString("metadata") ?: "{}",
+                metadataMapType,
+            ),
         )
     }
 
-    private fun findById(id: String): TextEmbedding? =
-        jdbcTemplate
-            .query(
-                """
+    private fun findById(id: String): TextEmbedding? = jdbcTemplate
+        .query(
+            """
                 SELECT id, content, timestamp, deleted, metadata FROM embeddings WHERE id = :id
-                """.trimIndent(),
-                mapOf("id" to id),
-                rowMapper,
-            ).firstOrNull()
+            """.trimIndent(),
+            mapOf("id" to id),
+            rowMapper,
+        ).firstOrNull()
 
     /**
      * Check if message should be processed based on timestamp
      * @return true if message should be processed (timestamp is newer or embedding doesn't exist), false otherwise
      */
-    fun shouldProcessMessage(
-        id: String,
-        timestamp: Long,
-    ): Boolean {
+    fun shouldProcessMessage(id: String, timestamp: Long): Boolean {
         val textEmbedding = findById(id)
         return textEmbedding == null || textEmbedding.timestamp < timestamp
     }
@@ -57,13 +51,7 @@ class EmbeddingRepository(
      *
      * @return true if the embedding was saved/updated, false if skipped due to older timestamp
      */
-    fun saveEmbedding(
-        id: String,
-        content: String,
-        vector: FloatArray,
-        timestamp: Long,
-        metadata: Map<String, String?>,
-    ): Boolean {
+    fun saveEmbedding(id: String, content: String, vector: FloatArray, timestamp: Long, metadata: Map<String, String?>): Boolean {
         val textEmbedding = findById(id)
 
         // If embedding exists and message timestamp is not newer, skip processing
@@ -109,10 +97,7 @@ class EmbeddingRepository(
      *
      * @return true if the embedding was marked as deleted, false if skipped due to older timestamp
      */
-    fun markDeletedByIdAndBeforeTimestamp(
-        id: String,
-        timestamp: Long,
-    ): Boolean {
+    fun markDeletedByIdAndBeforeTimestamp(id: String, timestamp: Long): Boolean {
         val textEmbedding = findById(id)
 
         // If embedding exists and message timestamp is not newer, skip processing
@@ -145,12 +130,7 @@ class EmbeddingRepository(
     /**
      * Perform similarity search
      */
-    fun searchSimilar(
-        type: SearchType?,
-        vector: FloatArray,
-        simThreshold: Float,
-        numMatches: Int,
-    ): List<TextEmbedding> {
+    fun searchSimilar(type: SearchType?, vector: FloatArray, simThreshold: Float, numMatches: Int): List<TextEmbedding> {
         val typeFilter = if (type != null) "AND metadata->>'type' = :type" else ""
         val params =
             mutableMapOf<String, Any>(
