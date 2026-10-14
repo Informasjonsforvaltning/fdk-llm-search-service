@@ -294,8 +294,9 @@ Hendelsen omhandler emnene: subject1, subject2.
     fun `store dataset embedding should skip when timestamp is older`() {
         every { embeddingRepository.shouldProcessMessage("12345", 1612137600000L) } returns false
 
-        embeddingService.storeDatasetEmbedding("12345", TEST_DATASET_ALL_FIELDS, 1612137600000L)
+        val saved = embeddingService.storeDatasetEmbedding("12345", TEST_DATASET_ALL_FIELDS, 1612137600000L)
 
+        assertEquals(false, saved)
         verify {
             embeddingRepository.shouldProcessMessage("12345", 1612137600000L)
         }
@@ -314,10 +315,29 @@ Hendelsen omhandler emnene: subject1, subject2.
         every { vertexService.embed(any()) } returns Embedding(vector)
         every { embeddingRepository.saveEmbedding(any(), any(), any(), any(), any()) } returns true
 
-        embeddingService.storeDatasetEmbedding("12345", TEST_DATASET_ALL_FIELDS, 1612137600001L)
+        val saved = embeddingService.storeDatasetEmbedding("12345", TEST_DATASET_ALL_FIELDS, 1612137600001L)
 
+        assertEquals(true, saved)
         verify {
             embeddingRepository.shouldProcessMessage("12345", 1612137600001L)
+            vertexService.embed(any())
+            embeddingRepository.saveEmbedding(any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun `store dataset embedding should return false when save loses timestamp race`() {
+        val vector = FloatArray(768)
+        vector.fill(0.1f)
+
+        every { embeddingRepository.shouldProcessMessage("12345", 1612137600001L) } returns true
+        every { vertexService.embed(any()) } returns Embedding(vector)
+        every { embeddingRepository.saveEmbedding(any(), any(), any(), any(), any()) } returns false
+
+        val saved = embeddingService.storeDatasetEmbedding("12345", TEST_DATASET_ALL_FIELDS, 1612137600001L)
+
+        assertEquals(false, saved)
+        verify {
             vertexService.embed(any())
             embeddingRepository.saveEmbedding(any(), any(), any(), any(), any())
         }
@@ -327,8 +347,9 @@ Hendelsen omhandler emnene: subject1, subject2.
     fun `store concept embedding should skip when timestamp is older`() {
         every { embeddingRepository.shouldProcessMessage("concept-123", 1612137600000L) } returns false
 
-        embeddingService.storeConceptEmbedding("concept-123", TEST_CONCEPT_ALL_FIELDS, 1612137600000L)
+        val saved = embeddingService.storeConceptEmbedding("concept-123", TEST_CONCEPT_ALL_FIELDS, 1612137600000L)
 
+        assertEquals(false, saved)
         verify {
             embeddingRepository.shouldProcessMessage("concept-123", 1612137600000L)
         }

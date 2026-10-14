@@ -46,12 +46,12 @@ open class KafkaRdfParseEventCircuitBreaker(
         }
     }
 
-    private fun storeEmbedding(record: GenericRecord, resourceType: RdfParseResourceType) {
+    private fun storeEmbedding(record: GenericRecord, resourceType: RdfParseResourceType): Boolean {
         val fdkId = (record.get("fdkId") ?: "").toString()
         val data = (record.get("data") ?: "").toString()
         val timestamp = runCatching { (record.get("timestamp") as? Number)?.toLong() }.getOrNull() ?: 0L
 
-        when (resourceType) {
+        return when (resourceType) {
             RdfParseResourceType.DATASET -> {
                 val dataset = objectMapper.readValue(data, Dataset::class.java)
                 embeddingService.storeDatasetEmbedding(fdkId, dataset, timestamp)
@@ -89,31 +89,43 @@ open class KafkaRdfParseEventCircuitBreaker(
 
         val event = record.value()
         val resourceType = resourceTypeFromRecord(event)
+        val resourceTypeTag = resourceType.name.lowercase()
         val harvestRunId = runCatching { event.get("harvestRunId")?.toString() }.getOrNull()
         val uri = runCatching { event.get("uri")?.toString() }.getOrNull()
         val fdkId = (event.get("fdkId") ?: "").toString()
         val startTime = Instant.now()
 
         try {
-            val timeElapsed =
+            val (saved, timeElapsed) =
                 measureTimedValue {
-                    logger.debug("Store embedding for ${resourceType.name.lowercase()} - id: $fdkId")
+                    logger.debug("Store embedding for $resourceTypeTag - id: $fdkId")
                     storeEmbedding(event, resourceType)
                 }
             val endTime = Instant.now()
 
-            Metrics
-                .timer("store_embedding", "type", resourceType.name.lowercase())
-                .record(timeElapsed.duration.toJavaDuration())
+            if (saved) {
+                Metrics
+                    .timer("store_embedding", "type", resourceTypeTag)
+                    .record(timeElapsed.toJavaDuration())
 
-            harvestEventProducer.produceSuccessEvent(
-                harvestRunId = harvestRunId,
-                uri = uri,
-                resourceType = resourceType,
-                fdkId = fdkId,
-                startTime = startTime,
-                endTime = endTime,
-            )
+                harvestEventProducer.produceSuccessEvent(
+                    harvestRunId = harvestRunId,
+                    uri = uri,
+                    resourceType = resourceType,
+                    fdkId = fdkId,
+                    startTime = startTime,
+                    endTime = endTime,
+                )
+            } else {
+                logger.debug(
+                    "Skipped storing embedding for {} - id: {} (stale timestamp or concurrent newer event)",
+                    resourceTypeTag,
+                    fdkId,
+                )
+                Metrics
+                    .counter("store_embedding_skipped", "type", resourceTypeTag)
+                    .increment()
+            }
         } catch (e: Exception) {
             val endTime = Instant.now()
             logger.error("Error processing message", e)
