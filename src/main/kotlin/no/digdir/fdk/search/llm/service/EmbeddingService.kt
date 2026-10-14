@@ -21,10 +21,11 @@ import java.time.format.DateTimeFormatter
 @Service
 open class EmbeddingService(private val vertexService: VertexService, private val embeddingRepository: EmbeddingRepository) {
     /**
-     * Store text embedding in the database as pgvector
+     * Store text embedding in the database as pgvector.
+     * @return true if the embedding was persisted, false if skipped due to an older/equal timestamp
      */
-    open fun storeDatasetEmbedding(fdkId: String, dataset: Dataset, timestamp: Long) {
-        if (!shouldProcess(fdkId, timestamp, "dataset")) return
+    open fun storeDatasetEmbedding(fdkId: String, dataset: Dataset, timestamp: Long): Boolean {
+        if (!shouldProcess(fdkId, timestamp, "dataset")) return false
 
         val themes =
             (
@@ -62,7 +63,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             $temporalSummary
             """.trimIndent()
 
-        saveEmbedding(
+        return saveEmbedding(
             fdkId,
             summary,
             timestamp,
@@ -76,10 +77,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
     }
 
     /**
-     * Store text embedding for Concept
+     * Store text embedding for Concept.
+     * @return true if the embedding was persisted, false if skipped due to an older/equal timestamp
      */
-    open fun storeConceptEmbedding(fdkId: String, concept: Concept, timestamp: Long) {
-        if (!shouldProcess(fdkId, timestamp, "concept")) return
+    open fun storeConceptEmbedding(fdkId: String, concept: Concept, timestamp: Long): Boolean {
+        if (!shouldProcess(fdkId, timestamp, "concept")) return false
 
         val keywords =
             (
@@ -97,7 +99,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             ${ if (keywords.isNotEmpty()) "Alternative navn for konseptet er: ${keywords.joinToString(", ")}." else ""}
             """.trimIndent()
 
-        saveEmbedding(
+        return saveEmbedding(
             fdkId,
             summary,
             timestamp,
@@ -111,10 +113,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
     }
 
     /**
-     * Store text embedding for DataService
+     * Store text embedding for DataService.
+     * @return true if the embedding was persisted, false if skipped due to an older/equal timestamp
      */
-    open fun storeDataServiceEmbedding(fdkId: String, dataService: DataService, timestamp: Long) {
-        if (!shouldProcess(fdkId, timestamp, "data service")) return
+    open fun storeDataServiceEmbedding(fdkId: String, dataService: DataService, timestamp: Long): Boolean {
+        if (!shouldProcess(fdkId, timestamp, "data service")) return false
 
         val themes =
             (
@@ -142,7 +145,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             ${ if (!dataService.servesDataset.isNullOrEmpty()) "Datatjenesten betjener ${dataService.servesDataset.size} datasett." else ""}
             """.trimIndent()
 
-        saveEmbedding(
+        return saveEmbedding(
             fdkId,
             summary,
             timestamp,
@@ -156,10 +159,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
     }
 
     /**
-     * Store text embedding for InformationModel
+     * Store text embedding for InformationModel.
+     * @return true if the embedding was persisted, false if skipped due to an older/equal timestamp
      */
-    open fun storeInformationModelEmbedding(fdkId: String, informationModel: InformationModel, timestamp: Long) {
-        if (!shouldProcess(fdkId, timestamp, "information model")) return
+    open fun storeInformationModelEmbedding(fdkId: String, informationModel: InformationModel, timestamp: Long): Boolean {
+        if (!shouldProcess(fdkId, timestamp, "information model")) return false
 
         val themes =
             (
@@ -191,7 +195,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             }}
             """.trimIndent()
 
-        saveEmbedding(
+        return saveEmbedding(
             fdkId,
             summary,
             timestamp,
@@ -205,10 +209,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
     }
 
     /**
-     * Store text embedding for Service
+     * Store text embedding for Service.
+     * @return true if the embedding was persisted, false if skipped due to an older/equal timestamp
      */
-    open fun storeServiceEmbedding(fdkId: String, service: ServiceResource, timestamp: Long) {
-        if (!shouldProcess(fdkId, timestamp, "service")) return
+    open fun storeServiceEmbedding(fdkId: String, service: ServiceResource, timestamp: Long): Boolean {
+        if (!shouldProcess(fdkId, timestamp, "service")) return false
 
         val themes =
             (
@@ -234,7 +239,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             ${ if (keywords.isNotEmpty()) "Nøkkelordene for tjenesten er: ${keywords.joinToString(", ")}." else ""}
             """.trimIndent()
 
-        saveEmbedding(
+        return saveEmbedding(
             fdkId,
             summary,
             timestamp,
@@ -251,10 +256,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
     }
 
     /**
-     * Store text embedding for Event
+     * Store text embedding for Event.
+     * @return true if the embedding was persisted, false if skipped due to an older/equal timestamp
      */
-    open fun storeEventEmbedding(fdkId: String, event: Event, timestamp: Long) {
-        if (!shouldProcess(fdkId, timestamp, "event")) return
+    open fun storeEventEmbedding(fdkId: String, event: Event, timestamp: Long): Boolean {
+        if (!shouldProcess(fdkId, timestamp, "event")) return false
 
         val specializedType =
             event.specializedType?.let {
@@ -276,7 +282,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             ${ if (!event.subject.isNullOrEmpty()) "Hendelsen omhandler emnene: ${event.subject.joinToString(", ")}." else ""}
             """.trimIndent()
 
-        saveEmbedding(
+        return saveEmbedding(
             fdkId,
             summary,
             timestamp,
@@ -340,14 +346,23 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             "publisherId" to publisherId,
         )
 
-    private fun saveEmbedding(fdkId: String, summary: String, timestamp: Long, metadata: Map<String, String?>) {
-        embeddingRepository.saveEmbedding(
-            fdkId,
-            summary,
-            vertexService.embed(summary).vector(),
-            timestamp,
-            metadata,
-        )
+    private fun saveEmbedding(fdkId: String, summary: String, timestamp: Long, metadata: Map<String, String?>): Boolean {
+        val saved =
+            embeddingRepository.saveEmbedding(
+                fdkId,
+                summary,
+                vertexService.embed(summary).vector(),
+                timestamp,
+                metadata,
+            )
+        if (!saved) {
+            logger.info(
+                "Skipped persisting embedding for {} after Vertex call - timestamp {} lost to a newer event",
+                fdkId,
+                timestamp,
+            )
+        }
+        return saved
     }
 
     private fun formatDatasetIssuedAndPeriodicity(dataset: Dataset): String {
