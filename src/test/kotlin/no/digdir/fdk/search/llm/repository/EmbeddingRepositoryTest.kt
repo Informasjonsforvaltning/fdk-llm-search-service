@@ -1,5 +1,6 @@
 package no.digdir.fdk.search.llm.repository
 
+import com.pgvector.PGvector
 import no.digdir.fdk.search.llm.model.SearchType
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.BeforeEach
@@ -160,6 +161,35 @@ class EmbeddingRepositoryTest {
     }
 
     @Test
+    fun `null stored timestamp - precheck and save agree that incoming zero is newer`() {
+        val id = "null-timestamp"
+        insertRowWithNullTimestamp(id)
+
+        assertTrue(repository.shouldProcessMessage(id, 0L))
+        assertTrue(repository.saveEmbedding(id, "backfilled", vector, 0L, metadata))
+
+        val row = repository.findById(id)
+        assertNotNull(row)
+        assertFalse(row.deleted)
+        assertEquals(0L, row.timestamp)
+        assertEquals("backfilled", row.content)
+    }
+
+    @Test
+    fun `null stored timestamp - precheck and delete agree that incoming zero is newer`() {
+        val id = "null-timestamp-delete"
+        insertRowWithNullTimestamp(id)
+
+        assertTrue(repository.shouldProcessMessage(id, 0L))
+        assertTrue(repository.markDeletedByIdAndBeforeTimestamp(id, 0L))
+
+        val row = repository.findById(id)
+        assertNotNull(row)
+        assertTrue(row.deleted)
+        assertEquals(0L, row.timestamp)
+    }
+
+    @Test
     fun `concurrent same-id saves - newer timestamp content wins`() {
         val id = "concurrent-saves"
         val older = 1_000L
@@ -191,5 +221,27 @@ class EmbeddingRepositoryTest {
         } finally {
             executor.shutdownNow()
         }
+    }
+
+    private fun insertRowWithNullTimestamp(id: String) {
+        jdbcTemplate.update(
+            """
+            INSERT INTO embeddings (id, content, timestamp, deleted, metadata, embedding)
+            VALUES (
+                :id,
+                'legacy',
+                NULL,
+                false,
+                :metadata::jsonb,
+                :embedding
+            )
+            """.trimIndent(),
+            mapOf(
+                "id" to id,
+                "metadata" to """{"type":"DATASET","title":"Test"}""",
+                "embedding" to PGvector(vector),
+            ),
+        )
+        assertNull(repository.findById(id)?.timestamp)
     }
 }

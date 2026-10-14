@@ -13,11 +13,12 @@ import java.sql.ResultSet
 @Component
 class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) {
     private val rowMapper: (ResultSet, rowNum: Int) -> TextEmbedding? = { rs, _ ->
+        val timestamp = rs.getLong("timestamp").takeUnless { rs.wasNull() }
         TextEmbedding(
             id = rs.getString("id"),
             content = rs.getString("content"),
             deleted = rs.getBoolean("deleted"),
-            timestamp = rs.getLong("timestamp"),
+            timestamp = timestamp,
             metadata =
             objectMapper.readValue(
                 rs.getString("metadata") ?: "{}",
@@ -36,13 +37,20 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
         ).firstOrNull()
 
     /**
-     * Check if message should be processed based on timestamp
-     * @return true if message should be processed (timestamp is newer or embedding doesn't exist), false otherwise
+     * Check if message should be processed based on timestamp.
+     * Matches the SQL upsert guard: process when no row exists, stored timestamp is NULL,
+     * or [timestamp] is strictly greater than the stored value.
      */
     fun shouldProcessMessage(id: String, timestamp: Long): Boolean {
-        val textEmbedding = findById(id)
-        return textEmbedding == null || textEmbedding.timestamp < timestamp
+        val textEmbedding = findById(id) ?: return true
+        return isNewerThanStored(timestamp, textEmbedding.timestamp)
     }
+
+    /**
+     * Same ordering rule as
+     * `embeddings.timestamp IS NULL OR embeddings.timestamp < EXCLUDED.timestamp`.
+     */
+    internal fun isNewerThanStored(incoming: Long, stored: Long?): Boolean = stored == null || stored < incoming
 
     /**
      * Save embedding to database.
