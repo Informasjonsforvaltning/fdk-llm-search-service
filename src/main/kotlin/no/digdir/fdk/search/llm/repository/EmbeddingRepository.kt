@@ -26,7 +26,7 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
         )
     }
 
-    private fun findById(id: String): TextEmbedding? = jdbcTemplate
+    internal fun findById(id: String): TextEmbedding? = jdbcTemplate
         .query(
             """
                 SELECT id, content, timestamp, deleted, metadata FROM embeddings WHERE id = :id
@@ -45,20 +45,13 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
     }
 
     /**
-     * Save embedding to database
-     * Only processes if the message timestamp is newer than the existing embedding timestamp.
-     * Sets deleted flag to false since we're sure this save happened after any previous delete.
+     * Save embedding to database.
+     * Atomically upserts only when [timestamp] is newer than the stored value, so a concurrent
+     * remove with a newer timestamp cannot be overwritten by an older parse event.
      *
      * @return true if the embedding was saved/updated, false if skipped due to older timestamp
      */
     fun saveEmbedding(id: String, content: String, vector: FloatArray, timestamp: Long, metadata: Map<String, String?>): Boolean {
-        val textEmbedding = findById(id)
-
-        // If embedding exists and message timestamp is not newer, skip processing
-        if (textEmbedding != null && textEmbedding.timestamp >= timestamp) {
-            return false
-        }
-
         val params =
             mapOf(
                 "id" to id,
@@ -68,63 +61,44 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
                 "timestamp" to timestamp,
             )
 
-        if (textEmbedding == null) {
-            // New embedding - set deleted to false
+        val updated =
             jdbcTemplate.update(
                 """
-                INSERT INTO embeddings (id, content, timestamp, deleted, metadata, embedding) 
+                INSERT INTO embeddings (id, content, timestamp, deleted, metadata, embedding)
                     VALUES (:id, :content, :timestamp, false, :metadata::jsonb, :embedding)
+                ON CONFLICT (id) DO UPDATE SET
+                    content = EXCLUDED.content,
+                    timestamp = EXCLUDED.timestamp,
+                    deleted = false,
+                    metadata = EXCLUDED.metadata,
+                    embedding = EXCLUDED.embedding
+                WHERE embeddings.timestamp IS NULL OR embeddings.timestamp < EXCLUDED.timestamp
                 """.trimIndent(),
                 params,
             )
-        } else {
-            // Update existing embedding - message timestamp is newer, so set deleted to false
-            // This ensures that if there was a previous delete, this save overrides it
-            jdbcTemplate.update(
-                """
-                UPDATE embeddings SET content = :content, timestamp = :timestamp, deleted = false, 
-                    metadata = :metadata::jsonb, embedding = :embedding WHERE id = :id
-                """.trimIndent(),
-                params,
-            )
-        }
-        return true
+        return updated > 0
     }
 
     /**
-     * Mark embedding as deleted by id
-     * Only processes if the message timestamp is newer than the existing embedding timestamp.
+     * Mark embedding as deleted by id.
+     * Atomically upserts a delete only when [timestamp] is newer than the stored value, so a
+     * concurrent save with an older timestamp cannot win the race.
      *
      * @return true if the embedding was marked as deleted, false if skipped due to older timestamp
      */
     fun markDeletedByIdAndBeforeTimestamp(id: String, timestamp: Long): Boolean {
-        val textEmbedding = findById(id)
-
-        // If embedding exists and message timestamp is not newer, skip processing
-        if (textEmbedding != null && textEmbedding.timestamp >= timestamp) {
-            return false
-        }
-
-        val params = mapOf("id" to id, "timestamp" to timestamp)
-
-        if (textEmbedding == null) {
-            // New deletion record - embedding doesn't exist yet, mark as deleted
+        val updated =
             jdbcTemplate.update(
                 """
-                INSERT INTO embeddings (id, timestamp, deleted) VALUES (:id, :timestamp, true) 
+                INSERT INTO embeddings (id, timestamp, deleted) VALUES (:id, :timestamp, true)
+                ON CONFLICT (id) DO UPDATE SET
+                    timestamp = EXCLUDED.timestamp,
+                    deleted = true
+                WHERE embeddings.timestamp IS NULL OR embeddings.timestamp < EXCLUDED.timestamp
                 """.trimIndent(),
-                params,
+                mapOf("id" to id, "timestamp" to timestamp),
             )
-        } else {
-            // Update existing embedding - message timestamp is newer, so mark as deleted
-            jdbcTemplate.update(
-                """
-                UPDATE embeddings SET timestamp = :timestamp, deleted = true WHERE id = :id
-            """,
-                params,
-            )
-        }
-        return true
+        return updated > 0
     }
 
     /**
