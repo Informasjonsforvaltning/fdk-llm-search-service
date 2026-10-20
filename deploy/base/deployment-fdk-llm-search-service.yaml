@@ -72,8 +72,23 @@ spec:
             - name: KAFKA_BOOTSTRAP_SERVERS
               valueFrom:
                 secretKeyRef:
-                  name: fdk-metadata-quality
+                  name: kafka-user-fdk-llm-search-service
                   key: BROKERS
+            - name: KAFKA_SECURITY_PROTOCOL
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-user-fdk-llm-search-service
+                  key: SECURITY_PROTOCOL
+            - name: KAFKA_SASL_MECHANISM
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-user-fdk-llm-search-service
+                  key: SASL_MECHANISM
+            - name: KAFKA_SASL_JAAS_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-user-fdk-llm-search-service
+                  key: SASL_JAAS_CONFIG
             - name: CORS_ORIGIN_PATTERNS
               valueFrom:
                 secretKeyRef:
