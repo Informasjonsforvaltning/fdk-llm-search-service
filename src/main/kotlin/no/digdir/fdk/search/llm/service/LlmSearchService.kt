@@ -66,7 +66,7 @@ class LlmSearchService(
         val llmStart = System.nanoTime()
         val (result, llmFailed) =
             runCatching {
-                searchAssistant.answer(objectMapper.writeValueAsString(embeddings), query)
+                searchAssistant.answer(serializeSummaries(embeddings), query)
             }.fold(
                 onSuccess = { aiResult -> aiResult to false },
                 onFailure = { ex ->
@@ -239,6 +239,11 @@ class LlmSearchService(
             .register(meterRegistry)
             .record(hits.toDouble())
     }
+
+    // Only what the LLM should judge by: the harvest timestamp is not the age of the data and would mislead it
+    private fun serializeSummaries(embeddings: List<TextEmbedding>): String = objectMapper.writeValueAsString(
+        embeddings.map { e -> mapOf("id" to e.id, "content" to e.content, "metadata" to e.metadata) },
+    )
 
     private fun serializeEmbeddingHits(embeddings: List<TextEmbedding>): String = objectMapper.writeValueAsString(
         embeddings.map { e ->

@@ -153,6 +153,31 @@ class LlmSearchServiceTest {
     }
 
     @Test
+    fun `llm search sends id, content and metadata but not harvest timestamp to the llm`() {
+        val summaries = mutableListOf<String>()
+
+        every { searchQueryRepository.saveSearchQuery("tilskudd", any(), any(), false) } returns Unit
+        every { searchAssistant.answer(capture(summaries), "tilskudd") } returns AIResult(false, emptyList())
+        every { embeddingService.similaritySearch("tilskudd", SearchType.DATASET, 0.3f, 10) } returns
+            listOf(
+                TextEmbedding(
+                    "id-2026",
+                    "content",
+                    false,
+                    1612137600000,
+                    mapOf("title" to "Tilskudd 2026", "type" to SearchType.DATASET.name, "issued" to "2026-04-09"),
+                ),
+            )
+
+        llmSearchService.search(LlmSearchOperation("tilskudd"))
+
+        assertEquals(
+            """[{"id":"id-2026","content":"content","metadata":{"title":"Tilskudd 2026","type":"DATASET","issued":"2026-04-09"}}]""",
+            summaries.single(),
+        )
+    }
+
+    @Test
     fun `llm search should return no hits when no embeddings match`() {
         every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Noe som ikke finnes") } returns AIResult(false, emptyList())
