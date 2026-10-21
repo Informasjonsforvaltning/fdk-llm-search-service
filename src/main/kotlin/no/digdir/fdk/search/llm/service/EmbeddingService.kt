@@ -39,13 +39,16 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         val issuedAndPeriodicity = formatDatasetIssuedAndPeriodicity(dataset)
         val temporalSummary = formatTemporalRanges(dataset.temporal)
 
+        val publisherClause = publishedBy(dataset.publisher?.prefLabel?.valueByPriority())
+
         val summary =
             """
-            Dette datasettet, med id '$fdkId' og navn '${dataset.title?.valueByPriority()}' er utgitt av '${dataset.publisher?.prefLabel?.valueByPriority()}'.
+            Dette datasettet, med id '$fdkId' og navn '${dataset.title?.valueByPriority()}'$publisherClause.
             Datasettet har ${dataset.accessRights
                 ?.prefLabel
                 ?.valueByPriority()
-                ?.lowercase() ?: "ukjent"} tilgang.
+                ?.lowercase()
+                ?.removeSuffix(" tilgang") ?: "ukjent"} tilgang.
             
             Beskrivelsen av datasettet er som følger:
             ${dataset.description?.valueByPriority() ?: "Ingen beskrivelse tilgjengelig."}
@@ -90,9 +93,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                     (concept.hiddenLabel?.mapNotNull { it.valueByPriority() } ?: emptyList())
                 ).toSet()
 
+        val publisherClause = publishedBy(concept.publisher?.prefLabel?.valueByPriority())
+
         val summary =
             """
-            Dette begrepet, med id '$fdkId' og navn '${concept.prefLabel?.valueByPriority()}' er utgitt av '${concept.publisher?.prefLabel?.valueByPriority()}'.
+            Dette begrepet, med id '$fdkId' og navn '${concept.prefLabel?.valueByPriority()}'$publisherClause.
             
             Beskrivelsen av begrepet er som følger:
             ${concept.definition?.text?.valueByPriority() ?: concept.prefLabel?.valueByPriority() ?: "Ingen beskrivelse tilgjengelig."}
@@ -129,13 +134,16 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         val formats = dataService.fdkFormat?.mapNotNull { it.code }?.toSet() ?: emptySet()
         val keywords = (dataService.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
 
+        val publisherClause = publishedBy(dataService.publisher?.prefLabel?.valueByPriority())
+
         val summary =
             """
-            Denne datatjenesten, med id '$fdkId' og navn '${dataService.title?.valueByPriority()}' er utgitt av '${dataService.publisher?.prefLabel?.valueByPriority()}'.
+            Denne datatjenesten, med id '$fdkId' og navn '${dataService.title?.valueByPriority()}'$publisherClause.
             Datatjenesten har ${dataService.accessRights
                 ?.prefLabel
                 ?.valueByPriority()
-                ?.lowercase() ?: "ukjent"} tilgang.
+                ?.lowercase()
+                ?.removeSuffix(" tilgang") ?: "ukjent"} tilgang.
             
             Beskrivelsen av datatjenesten er som følger:
             ${dataService.description?.valueByPriority() ?: "Ingen beskrivelse tilgjengelig."}
@@ -174,13 +182,16 @@ open class EmbeddingService(private val vertexService: VertexService, private va
 
         val keywords = (informationModel.keyword?.mapNotNull { it.valueByPriority() } ?: emptyList()).toSet()
 
+        val publisherClause = publishedBy(informationModel.publisher?.prefLabel?.valueByPriority())
+
         val summary =
             """
-            Denne informasjonsmodellen, med id '$fdkId' og navn '${informationModel.title?.valueByPriority()}' er utgitt av '${informationModel.publisher?.prefLabel?.valueByPriority()}'.
+            Denne informasjonsmodellen, med id '$fdkId' og navn '${informationModel.title?.valueByPriority()}'$publisherClause.
             Informasjonsmodellen har ${informationModel.accessRights
                 ?.prefLabel
                 ?.valueByPriority()
-                ?.lowercase() ?: "ukjent"} tilgang.
+                ?.lowercase()
+                ?.removeSuffix(" tilgang") ?: "ukjent"} tilgang.
             
             Beskrivelsen av informasjonsmodellen er som følger:
             ${informationModel.description?.valueByPriority() ?: "Ingen beskrivelse tilgjengelig."}
@@ -227,9 +238,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         val authorities =
             service.hasCompetentAuthority?.mapNotNull { it.prefLabel?.valueByPriority() ?: it.title?.valueByPriority() } ?: emptyList()
 
+        val publisherClause = publishedBy(service.catalog?.publisher?.prefLabel?.valueByPriority())
+
         val summary =
             """
-            Denne tjenesten, med id '$fdkId' og navn '${service.title?.valueByPriority()}' er utgitt av '${service.catalog?.publisher?.prefLabel?.valueByPriority()}'.
+            Denne tjenesten, med id '$fdkId' og navn '${service.title?.valueByPriority()}'$publisherClause.
             
             Beskrivelsen av tjenesten er som følger:
             ${service.description?.valueByPriority() ?: "Ingen beskrivelse tilgjengelig."}
@@ -272,9 +285,11 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                 }
             }
 
+        val publisherClause = publishedBy(event.catalog?.publisher?.prefLabel?.valueByPriority())
+
         val summary =
             """
-            Denne hendelsen, med id '$fdkId' og navn '${event.title?.valueByPriority()}' er utgitt av '${event.catalog?.publisher?.prefLabel?.valueByPriority()}'.
+            Denne hendelsen, med id '$fdkId' og navn '${event.title?.valueByPriority()}'$publisherClause.
             ${ if (specializedType != null) "Hendelsen er en $specializedType." else ""}
             
             Beskrivelsen av hendelsen er som følger:
@@ -373,6 +388,9 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         }
         return saved
     }
+
+    // Omit the clause rather than embedding a literal 'null' when the publisher is missing
+    private fun publishedBy(publisher: String?): String = publisher?.let { " er utgitt av '$it'" } ?: ""
 
     private fun formatDatasetIssuedAndPeriodicity(dataset: Dataset): String {
         if (dataset.issued == null && dataset.accrualPeriodicity?.prefLabel?.valueByPriority() == null) {

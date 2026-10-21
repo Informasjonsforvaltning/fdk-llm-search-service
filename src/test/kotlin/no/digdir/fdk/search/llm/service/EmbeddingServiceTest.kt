@@ -3,7 +3,9 @@ package no.digdir.fdk.search.llm.service
 import dev.langchain4j.data.embedding.Embedding
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
+import no.digdir.fdk.search.llm.model.LocalizedStrings
 import no.digdir.fdk.search.llm.model.SearchType
 import no.digdir.fdk.search.llm.model.TextEmbedding
 import no.digdir.fdk.search.llm.repository.EmbeddingRepository
@@ -213,6 +215,39 @@ Informasjonsmodellen omhandler emnene: subject1, subject2.
                 ),
             )
         }
+    }
+
+    private fun capturedSummary(store: () -> Unit): String {
+        val summary = slot<String>()
+        every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
+        every { vertexService.embed(any()) } returns Embedding(FloatArray(768))
+        every { embeddingRepository.saveEmbedding(any(), capture(summary), any(), any(), any()) } returns true
+        store()
+        return summary.captured
+    }
+
+    @Test
+    fun `service summary omits the publisher instead of embedding null`() {
+        val summary =
+            capturedSummary {
+                embeddingService.storeServiceEmbedding("service-123", TEST_SERVICE_ALL_FIELDS.copy(catalog = null), 1L)
+            }
+
+        assertEquals("Denne tjenesten, med id 'service-123' og navn 'NB Service Title'.", summary.lines().first())
+    }
+
+    @Test
+    fun `dataset summary does not repeat tilgang from the access rights label`() {
+        val accessRights =
+            TEST_DATASET_ALL_FIELDS.accessRights!!.copy(
+                prefLabel = LocalizedStrings("Allmenn tilgang", null, null, "Public"),
+            )
+        val summary =
+            capturedSummary {
+                embeddingService.storeDatasetEmbedding("12345", TEST_DATASET_ALL_FIELDS.copy(accessRights = accessRights), 1L)
+            }
+
+        assertEquals("Datasettet har allmenn tilgang.", summary.lines()[1])
     }
 
     @Test
