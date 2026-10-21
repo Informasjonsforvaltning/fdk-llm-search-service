@@ -138,19 +138,37 @@ WHERE 1 - (embedding <=> :vector) > :simThreshold
   AND metadata->>'type' = :type
   AND deleted IS NOT TRUE
 ORDER BY similarity DESC
-LIMIT :numMatches
+LIMIT :candidatePoolSize
 ```
 
 In addition to the vector of the search text we use two extra variables to
-control the similarity threshold (`simThreshold`) and the maximum number of returned
-resource descriptions (`numMatches`). The number returned in this step has a large impact
+control the similarity threshold (`simThreshold`) and the maximum number of
+resource descriptions passed on to the LLM (`numMatches`). The number passed on has a large impact
 on the perceived accuracy on the user side. We would like as many resource descriptions as
 possible, but if there are too many it can make the next step noticeably slower. There is
 also a hard limit on how many we can take, since Vertex has a limit on the size
 of the context. We have landed on a maximum of 10 resource descriptions in our use case, but
 this may change in the future. We store metadata as jsonb in addition to the vector
 so we can filter out irrelevant embeddings or extract information
-such as title and publisher.
+such as title, publisher and, for datasets, issued date.
+
+#### Resource series
+
+Resources published as a series, such as one dataset per year, have near-identical
+embeddings. Without special handling, arbitrary (often old) members of one series fill
+every slot and the newest one never reaches the LLM. We therefore fetch a wider pool of
+`candidatePoolSize` (default 40) and group it into series by type, publisher and title
+with years, "del n" and month names removed. Each series keeps its members whose title
+contains a year from the query, plus up to `maxPerSeries` (default 2) of its newest
+members by title year and issued date. Series keep the order of their most similar
+member, and the first `numMatches` candidates are passed on to the LLM.
+
+| Property | Environment variable | Default |
+|---|---|---|
+| `ai.search.numMatches` | `AI_SEARCH_NUM_MATCHES` | 10 |
+| `ai.search.simThreshold` | `AI_SEARCH_SIM_THRESHOLD` | 0.3 |
+| `ai.search.candidatePoolSize` | `AI_SEARCH_CANDIDATE_POOL_SIZE` | 40 |
+| `ai.search.maxPerSeries` | `AI_SEARCH_MAX_PER_SERIES` | 2 |
 
 ### LLM filtering and validation
 

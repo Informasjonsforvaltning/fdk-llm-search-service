@@ -57,8 +57,10 @@ class LlmSearchService(
         val search = aiProperties.search ?: SearchProperties()
 
         val embeddingStart = System.nanoTime()
-        val embeddings =
-            embeddingService.similaritySearch(query, searchType, search.simThreshold, search.numMatches)
+        // Fetch a wider pool and collapse resource series, so one series cannot crowd out its newest member
+        val poolSize = maxOf(search.candidatePoolSize, search.numMatches)
+        val candidates = embeddingService.similaritySearch(query, searchType, search.simThreshold, poolSize)
+        val embeddings = CandidateSelector.select(query, candidates, search.numMatches, search.maxPerSeries)
         val embeddingNanos = System.nanoTime() - embeddingStart
 
         val llmStart = System.nanoTime()

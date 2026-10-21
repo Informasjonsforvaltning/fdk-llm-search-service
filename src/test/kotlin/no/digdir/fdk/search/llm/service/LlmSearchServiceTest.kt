@@ -28,7 +28,7 @@ class LlmSearchServiceTest {
     private val searchAssistant = mockk<SearchAssistant>()
     private val embeddingService = mockk<EmbeddingService>()
     private val searchQueryRepository = mockk<SearchQueryRepository>()
-    private val aiProperties = AiProperties(search = SearchProperties(numMatches = 10, simThreshold = 0.3f))
+    private val aiProperties = AiProperties(search = SearchProperties(numMatches = 10, simThreshold = 0.3f, candidatePoolSize = 10))
     private val meterRegistry = SimpleMeterRegistry()
 
     private val llmSearchService = LlmSearchService(searchAssistant, embeddingService, searchQueryRepository, aiProperties, meterRegistry)
@@ -118,6 +118,38 @@ class LlmSearchServiceTest {
         verify {
             searchQueryRepository.saveSearchQuery("Tesla", 3, 3, false)
         }
+    }
+
+    @Test
+    fun `llm search fetches a candidate pool and sends only the newest member of a series to the llm`() {
+        val service =
+            LlmSearchService(
+                searchAssistant,
+                embeddingService,
+                searchQueryRepository,
+                AiProperties(search = SearchProperties(numMatches = 10, simThreshold = 0.3f, candidatePoolSize = 40, maxPerSeries = 1)),
+                meterRegistry,
+            )
+        val summaries = mutableListOf<String>()
+
+        every { searchQueryRepository.saveSearchQuery("tilskudd", any(), any(), false) } returns Unit
+        every { searchAssistant.answer(capture(summaries), "tilskudd") } returns AIResult(false, emptyList())
+        every { embeddingService.similaritySearch("tilskudd", SearchType.DATASET, 0.3f, 40) } returns
+            listOf(2014, 2015, 2026).map { year ->
+                TextEmbedding(
+                    "id-$year",
+                    "content",
+                    false,
+                    1612137600000,
+                    mapOf("title" to "Tilskudd $year", "publisherId" to "1234", "type" to SearchType.DATASET.name),
+                )
+            }
+
+        service.search(LlmSearchOperation("tilskudd"))
+
+        assert(summaries.single().contains("id-2026"))
+        assert(!summaries.single().contains("id-2014"))
+        verify { searchQueryRepository.saveSearchQuery("tilskudd", 1, 0, false) }
     }
 
     @Test

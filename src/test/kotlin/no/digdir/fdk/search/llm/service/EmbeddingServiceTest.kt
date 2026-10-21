@@ -56,6 +56,7 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
                     "title" to "NB Test title",
                     "publisher" to "NB Test publisher > prefLabel",
                     "publisherId" to "Test publisher > identifier",
+                    "issued" to "2021-01-01",
                 ),
             )
         }

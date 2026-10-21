@@ -72,6 +72,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                 dataset.title?.valueByPriority(),
                 dataset.publisher?.prefLabel?.valueByPriority(),
                 dataset.publisher?.id,
+                dataset.issued?.let(::parseIssuedDate)?.toString(),
             ),
         )
     }
@@ -338,13 +339,19 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         return true
     }
 
-    private fun buildMetadata(type: SearchType, title: String?, publisherLabel: String?, publisherId: String?): Map<String, String?> =
-        mapOf(
-            "type" to type.name,
-            "title" to title,
-            "publisher" to publisherLabel,
-            "publisherId" to publisherId,
-        )
+    private fun buildMetadata(
+        type: SearchType,
+        title: String?,
+        publisherLabel: String?,
+        publisherId: String?,
+        issued: String? = null,
+    ): Map<String, String?> = buildMap {
+        put("type", type.name)
+        put("title", title)
+        put("publisher", publisherLabel)
+        put("publisherId", publisherId)
+        if (issued != null) put("issued", issued)
+    }
 
     private fun saveEmbedding(fdkId: String, summary: String, timestamp: Long, metadata: Map<String, String?>): Boolean {
         val saved =
@@ -378,13 +385,12 @@ open class EmbeddingService(private val vertexService: VertexService, private va
             "."
     }
 
-    private fun formatIssuedDate(issued: String): String? {
-        val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        return runCatching {
-            LocalDateTime.parse(issued).format(formatter)
-        }.getOrElse {
-            runCatching { LocalDate.parse(issued).format(formatter) }.getOrNull()
-        }
+    private fun formatIssuedDate(issued: String): String? = parseIssuedDate(issued)?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+
+    private fun parseIssuedDate(issued: String): LocalDate? = runCatching {
+        LocalDateTime.parse(issued).toLocalDate()
+    }.getOrElse {
+        runCatching { LocalDate.parse(issued) }.getOrNull()
     }
 
     private fun formatTemporalRanges(temporal: List<Temporal>?): String {
