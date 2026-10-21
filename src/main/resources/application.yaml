@@ -26,6 +26,9 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     properties:
       schema.registry.url: ${KAFKA_SCHEMA_REGISTRY:http://localhost:8081}
+      security.protocol: ${KAFKA_SECURITY_PROTOCOL:PLAINTEXT}
+      sasl.mechanism: ${KAFKA_SASL_MECHANISM:SCRAM-SHA-512}
+      sasl.jaas.config: ${KAFKA_SASL_JAAS_CONFIG:}
       auto.register.schemas: false
       use.latest.version: true
       value.subject.name.strategy: io.confluent.kafka.serializers.subject.RecordNameStrategy
