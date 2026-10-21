@@ -130,6 +130,19 @@ class CandidateSelectorTest {
     }
 
     @Test
+    fun `keeps a single duplicate without year even when maxPerSeries allows more`() {
+        val duplicate = "Strømstøtte for jordbruksforetak, veksthus og vanningslag - Landbruksdirektoratet"
+        val candidates =
+            listOf(
+                candidate(duplicate, publisherId = "", type = SearchType.SERVICE),
+                candidate(duplicate, publisherId = "", type = SearchType.SERVICE),
+                candidate(duplicate, publisherId = "", type = SearchType.SERVICE),
+            ).mapIndexed { i, it -> it.copy(id = "s$i") }
+
+        assertEquals(listOf("s0"), CandidateSelector.select("strømstøtte", candidates, 10, 2).map { it.id })
+    }
+
+    @Test
     fun `keeps resources without title and applies the limit`() {
         val candidates = (1..5).map { TextEmbedding(id = "id$it", metadata = mapOf("type" to SearchType.DATASET.name)) }
 

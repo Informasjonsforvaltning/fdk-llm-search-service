@@ -171,8 +171,10 @@ every slot and the newest one never reaches the LLM. We therefore fetch a wider 
 `candidatePoolSize` (default 40) and group it into series by type, publisher and title
 with years, "del n" and month names removed. Each series keeps its members whose title
 contains a year from the query, plus up to `maxPerSeries` (default 2) of its newest
-members by title year and issued date. Series keep the order of their most similar
-member, and the first `numMatches` candidates are passed on to the LLM.
+members by title year and issued date. Groups without any year in their titles are
+duplicates rather than editions (e.g. the same service registered several times), so only
+one of them is kept. Series keep the order of their most similar member, and the first
+`numMatches` candidates are passed on to the LLM.
 
 | Property | Environment variable | Default |
 |---|---|---|

@@ -10,7 +10,8 @@ import no.digdir.fdk.search.llm.model.TextEmbedding
  * into series by type, publisher and title with years, "del n" and month names removed. Within a
  * series, members whose title contains a year from the query come first, then the newest by title
  * year and `issued`. Each series keeps its year matches plus up to `maxPerSeries` members, and series
- * keep the order of their most similar member.
+ * keep the order of their most similar member. Groups without any year in their titles are duplicates
+ * rather than editions, so only one of them is kept.
  */
 object CandidateSelector {
     private val yearRegex = Regex("""\b(19|20)\d{2}\b""")
@@ -29,9 +30,11 @@ object CandidateSelector {
             .groupBy(::seriesKey)
             .values
             .flatMap { series ->
+                // Without years in the titles the members are duplicates, not editions of a series
+                val keep = if (series.any { titleYears(it).isNotEmpty() }) maxPerSeries else 1
                 series
                     .sortedWith(newestFirst)
-                    .filterIndexed { index, member -> index < maxPerSeries || matchesYear(member, queryYears) }
+                    .filterIndexed { index, member -> index < keep || matchesYear(member, queryYears) }
             }.take(limit)
     }
 
