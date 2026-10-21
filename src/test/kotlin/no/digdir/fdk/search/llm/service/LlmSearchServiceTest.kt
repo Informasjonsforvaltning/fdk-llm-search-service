@@ -65,7 +65,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Tesla") } returns aiResult
-        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -134,7 +134,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("tilskudd", any(), any(), false) } returns Unit
         every { searchAssistant.answer(capture(summaries), "tilskudd") } returns AIResult(false, emptyList())
-        every { embeddingService.similaritySearch("tilskudd", SearchType.DATASET, 0.3f, 40) } returns
+        every { embeddingService.similaritySearch("tilskudd", SearchType.DATASET, 0.3f, 40, true) } returns
             listOf(2014, 2015, 2026).map { year ->
                 TextEmbedding(
                     "id-$year",
@@ -158,7 +158,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("tilskudd", any(), any(), false) } returns Unit
         every { searchAssistant.answer(capture(summaries), "tilskudd") } returns AIResult(false, emptyList())
-        every { embeddingService.similaritySearch("tilskudd", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("tilskudd", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "id-2026",
@@ -181,7 +181,7 @@ class LlmSearchServiceTest {
     fun `llm search should return no hits when no embeddings match`() {
         every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Noe som ikke finnes") } returns AIResult(false, emptyList())
-        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10) } returns emptyList()
+        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10, true) } returns emptyList()
 
         val result = llmSearchService.search(LlmSearchOperation("Noe som ikke finnes"))
         assertEquals(0, result.hits.size)
@@ -195,7 +195,7 @@ class LlmSearchServiceTest {
     fun `llm search should return no hits when llm filters summaries`() {
         every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Noe som ikke finnes") } returns AIResult(false, emptyList())
-        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -247,7 +247,7 @@ class LlmSearchServiceTest {
     fun `llm search should return no hits when assistant throws`() {
         every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Tesla") } throws RuntimeException("malformed response")
-        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -299,7 +299,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("concept search", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "concept search") } returns aiResult
-        every { embeddingService.similaritySearch("concept search", SearchType.CONCEPT, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("concept search", SearchType.CONCEPT, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "concept-123",
@@ -321,7 +321,7 @@ class LlmSearchServiceTest {
         assertEquals(SearchType.CONCEPT.name, result.hits[0].type)
 
         verify {
-            embeddingService.similaritySearch("concept search", SearchType.CONCEPT, 0.3f, 10)
+            embeddingService.similaritySearch("concept search", SearchType.CONCEPT, 0.3f, 10, true)
         }
     }
 
@@ -335,7 +335,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("dataservice search", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "dataservice search") } returns aiResult
-        every { embeddingService.similaritySearch("dataservice search", SearchType.DATA_SERVICE, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("dataservice search", SearchType.DATA_SERVICE, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "dataservice-123",
@@ -357,7 +357,7 @@ class LlmSearchServiceTest {
         assertEquals(SearchType.DATA_SERVICE.name, result.hits[0].type)
 
         verify {
-            embeddingService.similaritySearch("dataservice search", SearchType.DATA_SERVICE, 0.3f, 10)
+            embeddingService.similaritySearch("dataservice search", SearchType.DATA_SERVICE, 0.3f, 10, true)
         }
     }
 
@@ -371,7 +371,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("default search", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "default search") } returns aiResult
-        every { embeddingService.similaritySearch("default search", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("default search", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "dataset-123",
@@ -393,7 +393,7 @@ class LlmSearchServiceTest {
         assertEquals(SearchType.DATASET.name, result.hits[0].type)
 
         verify {
-            embeddingService.similaritySearch("default search", SearchType.DATASET, 0.3f, 10)
+            embeddingService.similaritySearch("default search", SearchType.DATASET, 0.3f, 10, true)
         }
     }
 
@@ -407,7 +407,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("Tesla metric", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Tesla metric") } returns aiResult
-        every { embeddingService.similaritySearch("Tesla metric", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Tesla metric", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -454,7 +454,7 @@ class LlmSearchServiceTest {
     fun `records llm_failed=true when assistant throws`() {
         every { searchQueryRepository.saveSearchQuery("Tesla fail", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Tesla fail") } throws RuntimeException("malformed response")
-        every { embeddingService.similaritySearch("Tesla fail", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Tesla fail", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -486,7 +486,7 @@ class LlmSearchServiceTest {
     fun `records zero_hits=true when llm returns no hits`() {
         every { searchQueryRepository.saveSearchQuery("empty query", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "empty query") } returns AIResult(false, emptyList())
-        every { embeddingService.similaritySearch("empty query", SearchType.DATASET, 0.3f, 10) } returns emptyList()
+        every { embeddingService.similaritySearch("empty query", SearchType.DATASET, 0.3f, 10, true) } returns emptyList()
 
         llmSearchService.search(LlmSearchOperation("empty query"))
 
@@ -503,7 +503,7 @@ class LlmSearchServiceTest {
     fun `records sensitive=true tag when result is flagged sensitive`() {
         every { searchQueryRepository.saveSearchQuery("Personnummer 12345678901", any(), any(), true) } returns Unit
         every { searchAssistant.answer(any(), "Personnummer 12345678901") } returns AIResult(sensitive = true, hits = emptyList())
-        every { embeddingService.similaritySearch("Personnummer 12345678901", SearchType.DATASET, 0.3f, 10) } returns emptyList()
+        every { embeddingService.similaritySearch("Personnummer 12345678901", SearchType.DATASET, 0.3f, 10, true) } returns emptyList()
 
         llmSearchService.search(LlmSearchOperation("Personnummer 12345678901"))
 
@@ -525,7 +525,7 @@ class LlmSearchServiceTest {
 
         every { searchQueryRepository.saveSearchQuery("all types search", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "all types search") } returns aiResult
-        every { embeddingService.similaritySearch("all types search", null, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("all types search", null, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "mixed-123",
@@ -546,7 +546,7 @@ class LlmSearchServiceTest {
         assertEquals("Mixed Resource", result.hits[0].title)
 
         verify {
-            embeddingService.similaritySearch("all types search", null, 0.3f, 10)
+            embeddingService.similaritySearch("all types search", null, 0.3f, 10, true)
         }
     }
 
@@ -554,7 +554,7 @@ class LlmSearchServiceTest {
     fun `logs embedding_hits when llm returns zero hits but embeddings exist`() {
         every { searchQueryRepository.saveSearchQuery("Noe som ikke finnes", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Noe som ikke finnes") } returns AIResult(false, emptyList())
-        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Noe som ikke finnes", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -597,7 +597,7 @@ class LlmSearchServiceTest {
             )
         every { searchQueryRepository.saveSearchQuery("Tesla", any(), any(), false) } returns Unit
         every { searchAssistant.answer(any(), "Tesla") } returns aiResult
-        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Tesla", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",
@@ -620,7 +620,7 @@ class LlmSearchServiceTest {
     fun `omits embedding_hits when query is sensitive`() {
         every { searchQueryRepository.saveSearchQuery("Personnummer 12345678901", any(), any(), true) } returns Unit
         every { searchAssistant.answer(any(), "Personnummer 12345678901") } returns AIResult(sensitive = true, hits = emptyList())
-        every { embeddingService.similaritySearch("Personnummer 12345678901", SearchType.DATASET, 0.3f, 10) } returns
+        every { embeddingService.similaritySearch("Personnummer 12345678901", SearchType.DATASET, 0.3f, 10, true) } returns
             listOf(
                 TextEmbedding(
                     "12345",

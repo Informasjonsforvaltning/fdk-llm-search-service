@@ -74,16 +74,27 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
             )
 
         every { vertexService.embed(any()) } returns Embedding(vector)
-        every { embeddingRepository.searchSimilar(any(), any(), any(), any()) } returns expectedEmbeddings
-        val embeddings = embeddingService.similaritySearch("search_query", SearchType.DATASET, 0.3f, 10)
+        every { embeddingRepository.searchSimilar(any(), any(), any(), any(), any()) } returns expectedEmbeddings
+        val embeddings = embeddingService.similaritySearch("search_query", SearchType.DATASET, 0.3f, 10, false)
 
         assertEquals(2, embeddings.size)
         assertEquals(expectedEmbeddings, embeddings)
 
         verify {
             vertexService.embed("search_query")
-            embeddingRepository.searchSimilar(SearchType.DATASET, vector, 0.3f, 10)
+            embeddingRepository.searchSimilar(SearchType.DATASET, vector, 0.3f, 10, null)
         }
+    }
+
+    @Test
+    fun `hybrid similarity search passes the query on for full-text ranking`() {
+        val vector = FloatArray(768) { 0.5f }
+
+        every { vertexService.embed(any()) } returns Embedding(vector)
+        every { embeddingRepository.searchSimilar(any(), any(), any(), any(), any()) } returns emptyList()
+        embeddingService.similaritySearch("tilskudd 2026", null, 0.3f, 40, true)
+
+        verify { embeddingRepository.searchSimilar(null, vector, 0.3f, 40, "tilskudd 2026") }
     }
 
     @Test

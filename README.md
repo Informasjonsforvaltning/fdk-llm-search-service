@@ -152,6 +152,17 @@ this may change in the future. We store metadata as jsonb in addition to the vec
 so we can filter out irrelevant embeddings or extract information
 such as title, publisher and, for datasets, issued date.
 
+#### Hybrid search
+
+Embeddings barely tell apart titles that differ only by a year or a single word, such as
+"søknadsår 2025" and "søknadsår 2026". With `hybridSearch` enabled (default), the similarity
+ranking above is therefore fused with a full-text ranking on the title (`title_tsv`, Norwegian
+configuration, query terms OR-ed) using reciprocal rank fusion:
+`score = 1/(60 + similarity rank) + 1/(60 + full-text rank)`. Only the 10 best title matches
+count, so titles sharing a single generic word with the query do not outrank closer semantic
+matches. Title matches are included even below `simThreshold`. Set `AI_SEARCH_HYBRID=false` to
+fall back to similarity search only.
+
 #### Resource series
 
 Resources published as a series, such as one dataset per year, have near-identical
@@ -169,6 +180,7 @@ member, and the first `numMatches` candidates are passed on to the LLM.
 | `ai.search.simThreshold` | `AI_SEARCH_SIM_THRESHOLD` | 0.3 |
 | `ai.search.candidatePoolSize` | `AI_SEARCH_CANDIDATE_POOL_SIZE` | 40 |
 | `ai.search.maxPerSeries` | `AI_SEARCH_MAX_PER_SERIES` | 2 |
+| `ai.search.hybridSearch` | `AI_SEARCH_HYBRID` | true |
 
 ### LLM filtering and validation
 

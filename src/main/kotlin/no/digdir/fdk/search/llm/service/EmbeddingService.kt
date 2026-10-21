@@ -302,10 +302,12 @@ open class EmbeddingService(private val vertexService: VertexService, private va
     /**
      * Perform similarity search
      * @param type If null, searches across all resource types. Otherwise filters by the specified type.
+     * @param hybrid If true, fuses the similarity ranking with a full-text ranking on the title.
      */
-    fun similaritySearch(query: String, type: SearchType?, simThreshold: Float, numMatches: Int): List<TextEmbedding> {
+    fun similaritySearch(query: String, type: SearchType?, simThreshold: Float, numMatches: Int, hybrid: Boolean): List<TextEmbedding> {
         val embedding = vertexService.embed(query)
-        return embeddingRepository.searchSimilar(type, embedding.vector(), simThreshold, numMatches)
+        val lexicalQuery = if (hybrid) query else null
+        return embeddingRepository.searchSimilar(type, embedding.vector(), simThreshold, numMatches, lexicalQuery)
     }
 
     /**

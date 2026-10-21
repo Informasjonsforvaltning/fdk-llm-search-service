@@ -21,4 +21,5 @@ data class SearchProperties(
     var simThreshold: Float = 0.3f,
     var candidatePoolSize: Int = 40,
     var maxPerSeries: Int = 2,
+    var hybridSearch: Boolean = true,
 )
