@@ -52,12 +52,22 @@ class BackfillDatasetIssuedMigrationTest {
                 VALUES (:id, :content, 1, false, :metadata::jsonb, :embedding)
             """.trimIndent()
         val vector = PGvector(FloatArray(768) { 0.1f })
+        val dataset = """{"type":"DATASET"}"""
         listOf(
-            Triple("dataset", "Datasettet ble utgitt 09.04.2026 og oppdateres årlig.", """{"type":"DATASET"}"""),
-            Triple("dataset-period", "Datasettet ble utgitt 12.06.2016.", """{"type":"DATASET"}"""),
-            Triple("dataset-no-date", "Datasettet oppdateres årlig.", """{"type":"DATASET"}"""),
+            Triple("dataset", "Datasettet ble utgitt 09.04.2026 og oppdateres årlig.", dataset),
+            Triple("dataset-period", "Datasettet ble utgitt 12.06.2016.", dataset),
+            Triple(
+                "dataset-date-in-description",
+                "Beskrivelse:\nDatasettet ble utgitt 01.01.2000 på papir.\n\nDatasettet ble utgitt 05.05.2021.",
+                dataset,
+            ),
+            Triple("dataset-impossible-date", "Datasettet ble utgitt 31.02.2020.", dataset),
+            Triple("dataset-out-of-range", "Datasettet ble utgitt 45.13.2020.", dataset),
+            Triple("dataset-malformed-date", "Datasettet ble utgitt 1.2.2020.", dataset),
+            Triple("dataset-no-date", "Datasettet oppdateres årlig.", dataset),
+            Triple("dataset-null-content", null, dataset),
             Triple("dataset-issued", "Datasettet ble utgitt 01.01.2020.", """{"type":"DATASET","issued":"2021-05-05"}"""),
-            Triple("service", "Tjenesten ble utgitt 01.01.2020.", """{"type":"SERVICE"}"""),
+            Triple("service", "Datasettet ble utgitt 01.01.2020.", """{"type":"SERVICE"}"""),
         ).forEach { (id, content, metadata) ->
             jdbcTemplate.update(insert, mapOf("id" to id, "content" to content, "metadata" to metadata, "embedding" to vector))
         }
@@ -73,7 +83,12 @@ class BackfillDatasetIssuedMigrationTest {
             mapOf(
                 "dataset" to "2026-04-09",
                 "dataset-period" to "2016-06-12",
+                "dataset-date-in-description" to "2021-05-05",
+                "dataset-impossible-date" to null,
+                "dataset-out-of-range" to null,
+                "dataset-malformed-date" to null,
                 "dataset-no-date" to null,
+                "dataset-null-content" to null,
                 "dataset-issued" to "2021-05-05",
                 "service" to null,
             ),

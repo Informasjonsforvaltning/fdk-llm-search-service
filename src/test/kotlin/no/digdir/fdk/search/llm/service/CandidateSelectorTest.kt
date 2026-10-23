@@ -143,6 +143,30 @@ class CandidateSelectorTest {
     }
 
     @Test
+    fun `does not group similar titles without publisher, as they may come from different publishers`() {
+        val candidates =
+            listOf(
+                candidate("Tilskudd 2024", publisherId = "", type = SearchType.SERVICE),
+                candidate("Tilskudd 2025", publisherId = "", type = SearchType.SERVICE),
+                candidate("Tilskudd del 2", publisherId = "", type = SearchType.SERVICE),
+            ).map { it.copy(metadata = it.metadata!! - "publisherId") }
+
+        assertEquals(titles(candidates), titles(CandidateSelector.select("tilskudd", candidates, 10, 1)))
+    }
+
+    @Test
+    fun `groups exact duplicates without publisher`() {
+        val candidates =
+            listOf(
+                candidate("Strømstøtte", publisherId = "", type = SearchType.SERVICE).copy(id = "a"),
+                candidate("Strømstøtte ", publisherId = "", type = SearchType.SERVICE).copy(id = "b"),
+                candidate("Strømstøtte 2024", publisherId = "", type = SearchType.SERVICE).copy(id = "c"),
+            )
+
+        assertEquals(listOf("a", "c"), CandidateSelector.select("strømstøtte", candidates, 10, 2).map { it.id })
+    }
+
+    @Test
     fun `keeps resources without title and applies the limit`() {
         val candidates = (1..5).map { TextEmbedding(id = "id$it", metadata = mapOf("type" to SearchType.DATASET.name)) }
 

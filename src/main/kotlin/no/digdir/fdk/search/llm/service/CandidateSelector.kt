@@ -11,7 +11,8 @@ import no.digdir.fdk.search.llm.model.TextEmbedding
  * series, members whose title contains a year from the query come first, then the newest by title
  * year and `issued`. Each series keeps its year matches plus up to `maxPerSeries` members, and series
  * keep the order of their most similar member. Groups without any year in their titles are duplicates
- * rather than editions, so only one of them is kept.
+ * rather than editions, so only one of them is kept. Resources without a publisher are only grouped with
+ * exact duplicates of their title.
  */
 object CandidateSelector {
     private val yearRegex = Regex("""\b(19|20)\d{2}\b""")
@@ -39,17 +40,24 @@ object CandidateSelector {
     }
 
     private fun seriesKey(embedding: TextEmbedding): String {
-        val title = embedding.metadata?.get("title")
+        val metadata = embedding.metadata
+        val title = metadata?.get("title")?.trim()
+        if (title.isNullOrEmpty()) return "id:${embedding.id}"
+
+        // Without a publisher, similar titles may come from different publishers, so only exact duplicates are grouped
+        val publisherId = metadata["publisherId"]
+        if (publisherId.isNullOrBlank()) return listOf(metadata["type"], "", title).joinToString("|")
+
         val normalized =
             title
-                ?.lowercase()
-                ?.replace(yearRegex, " ")
-                ?.replace(seriesNoiseRegex, " ")
-                ?.replace(nonWordRegex, " ")
-                ?.trim()
-        if (normalized.isNullOrEmpty()) return "id:${embedding.id}"
+                .lowercase()
+                .replace(yearRegex, " ")
+                .replace(seriesNoiseRegex, " ")
+                .replace(nonWordRegex, " ")
+                .trim()
+        if (normalized.isEmpty()) return "id:${embedding.id}"
 
-        return listOf(embedding.metadata["type"], embedding.metadata["publisherId"], normalized).joinToString("|")
+        return listOf(metadata["type"], publisherId, normalized).joinToString("|")
     }
 
     private fun matchesYear(embedding: TextEmbedding, queryYears: Set<Int>): Boolean =
