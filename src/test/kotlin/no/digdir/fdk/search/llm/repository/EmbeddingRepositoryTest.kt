@@ -223,6 +223,26 @@ class EmbeddingRepositoryTest {
         }
     }
 
+    @Test
+    fun `hybrid search includes title matches below the similarity threshold`() {
+        val orthogonal = FloatArray(768) { if (it % 2 == 0) 0.1f else -0.1f }
+        repository.saveEmbedding("a", "content", vector, 1L, mapOf("type" to SearchType.DATASET.name, "title" to "Tilskudd 2025"))
+        repository.saveEmbedding("b", "content", orthogonal, 1L, mapOf("type" to SearchType.DATASET.name, "title" to "Tilskudd 2026"))
+
+        val vectorOnly = repository.searchSimilar(SearchType.DATASET, vector, 0.3f, 10)
+        val hybrid = repository.searchSimilar(SearchType.DATASET, vector, 0.3f, 10, "gi meg tilskudd 2026")
+
+        assertEquals(listOf("a"), vectorOnly.map { it.id })
+        assertEquals(setOf("a", "b"), hybrid.map { it.id }.toSet())
+    }
+
+    @Test
+    fun `hybrid search falls back to similarity when the query has no searchable terms`() {
+        repository.saveEmbedding("a", "content", vector, 1L, mapOf("type" to SearchType.DATASET.name, "title" to "Tilskudd"))
+
+        assertEquals(listOf("a"), repository.searchSimilar(null, vector, 0.3f, 10, "og i").map { it.id })
+    }
+
     private fun insertRowWithNullTimestamp(id: String) {
         jdbcTemplate.update(
             """
