@@ -16,4 +16,10 @@ data class VertexProperties(
     var temperature: Float? = null,
 )
 
-data class SearchProperties(var numMatches: Int = 10, var simThreshold: Float = 0.3f)
+data class SearchProperties(
+    var numMatches: Int = 10,
+    var simThreshold: Float = 0.3f,
+    var candidatePoolSize: Int = 40,
+    var maxPerSeries: Int = 2,
+    var hybridSearch: Boolean = true,
+)

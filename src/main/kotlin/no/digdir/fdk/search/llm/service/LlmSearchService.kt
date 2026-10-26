@@ -57,14 +57,16 @@ class LlmSearchService(
         val search = aiProperties.search ?: SearchProperties()
 
         val embeddingStart = System.nanoTime()
-        val embeddings =
-            embeddingService.similaritySearch(query, searchType, search.simThreshold, search.numMatches)
+        // Fetch a wider pool and collapse resource series, so one series cannot crowd out its newest member
+        val poolSize = maxOf(search.candidatePoolSize, search.numMatches)
+        val candidates = embeddingService.similaritySearch(query, searchType, search.simThreshold, poolSize, search.hybridSearch)
+        val embeddings = CandidateSelector.select(query, candidates, search.numMatches, search.maxPerSeries)
         val embeddingNanos = System.nanoTime() - embeddingStart
 
         val llmStart = System.nanoTime()
         val (result, llmFailed) =
             runCatching {
-                searchAssistant.answer(objectMapper.writeValueAsString(embeddings), query)
+                searchAssistant.answer(serializeSummaries(embeddings), query)
             }.fold(
                 onSuccess = { aiResult -> aiResult to false },
                 onFailure = { ex ->
@@ -237,6 +239,11 @@ class LlmSearchService(
             .register(meterRegistry)
             .record(hits.toDouble())
     }
+
+    // Only what the LLM should judge by: the harvest timestamp is not the age of the data and would mislead it
+    private fun serializeSummaries(embeddings: List<TextEmbedding>): String = objectMapper.writeValueAsString(
+        embeddings.map { e -> mapOf("id" to e.id, "content" to e.content, "metadata" to e.metadata) },
+    )
 
     private fun serializeEmbeddingHits(embeddings: List<TextEmbedding>): String = objectMapper.writeValueAsString(
         embeddings.map { e ->

@@ -112,7 +112,13 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
     /**
      * Perform similarity search
      */
-    fun searchSimilar(type: SearchType?, vector: FloatArray, simThreshold: Float, numMatches: Int): List<TextEmbedding> {
+    fun searchSimilar(
+        type: SearchType?,
+        vector: FloatArray,
+        simThreshold: Float,
+        numMatches: Int,
+        lexicalQuery: String? = null,
+    ): List<TextEmbedding> {
         val typeFilter = if (type != null) "AND metadata->>'type' = :type" else ""
         val params =
             mutableMapOf<String, Any>(
@@ -122,6 +128,12 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
             )
         if (type != null) {
             params["type"] = type.name
+        }
+        if (lexicalQuery != null) {
+            params["lexicalQuery"] = lexicalQuery
+            params["rrfK"] = RRF_K
+            params["lexicalMatches"] = LEXICAL_MATCHES
+            return jdbcTemplate.query(hybridSearchSql(typeFilter), params, rowMapper).requireNoNulls()
         }
 
         return jdbcTemplate
@@ -138,7 +150,43 @@ class EmbeddingRepository(private val jdbcTemplate: NamedParameterJdbcTemplate) 
             ).requireNoNulls()
     }
 
+    /**
+     * Fuses the embedding ranking with a full-text ranking on the title using reciprocal rank fusion,
+     * so exact terms such as years ("2026") weigh in where the embedding barely tells them apart.
+     * Query terms are OR-ed, so natural extra words in the question do not exclude title matches. Only the
+     * best [LEXICAL_MATCHES] title matches count, so titles sharing a single generic word with the query
+     * (e.g. "jordbruksforetak") do not outrank closer semantic matches.
+     */
+    private fun hybridSearchSql(typeFilter: String) = """
+        WITH vec AS (
+            SELECT id, row_number() OVER (ORDER BY embedding <=> :vector, id) AS rnk
+            FROM embeddings
+            WHERE 1 - (embedding <=> :vector) > :simThreshold $typeFilter AND deleted IS NOT TRUE
+            ORDER BY rnk
+            LIMIT :numMatches
+        ),
+        lex AS (
+            SELECT id, row_number() OVER (ORDER BY ts_rank_cd(title_tsv, q.tsq) DESC, id) AS rnk
+            FROM embeddings,
+                 (SELECT replace(plainto_tsquery('norwegian', :lexicalQuery)::text, ' & ', ' | ')::tsquery AS tsq) q
+            WHERE title_tsv @@ q.tsq $typeFilter AND deleted IS NOT TRUE
+            ORDER BY rnk
+            LIMIT :lexicalMatches
+        ),
+        fused AS (
+            SELECT id, sum(1.0 / (:rrfK + rnk)) AS score
+            FROM (SELECT id, rnk FROM vec UNION ALL SELECT id, rnk FROM lex) ranked
+            GROUP BY id
+        )
+        SELECT e.id, e.content, e.deleted, e.timestamp, e.metadata
+        FROM fused f JOIN embeddings e ON e.id = f.id
+        ORDER BY f.score DESC, e.id
+        LIMIT :numMatches
+    """.trimIndent()
+
     companion object {
+        private const val RRF_K = 60
+        private const val LEXICAL_MATCHES = 10
         private val objectMapper: ObjectMapper = jacksonObjectMapper()
         private val metadataMapType =
             TypeFactory
