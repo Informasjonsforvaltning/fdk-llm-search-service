@@ -7,6 +7,9 @@ logging:
   level.org.apache.kafka: ERROR
 server:
   port: 8080
+  compression:
+    enabled: true
+    min-response-size: 1024
 management:
   endpoints:
     web:
