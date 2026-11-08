@@ -3,7 +3,7 @@ package no.digdir.fdk.search.llm.model
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(
-    description = "A single search result hit containing resource information and relevance explanation",
+    description = "A single search result hit containing resource information and why it was suggested",
 )
 data class LlmSearchHit(
     @param:Schema(
@@ -17,12 +17,15 @@ data class LlmSearchHit(
     )
     val title: String,
     @param:Schema(
-        description = "Explanation of why this resource matches the search query, formatted in Markdown",
-        example =
-        "Dette datasettet inneholder statistikk om befolkning og demografi i Norge, " +
-            "inkludert aldersfordeling, kjønnsfordeling og geografisk fordeling.",
+        description = "Catalog description of the resource",
+        example = "Statistikk om befolkning og demografi i Norge, inkludert aldersfordeling og geografisk fordeling.",
     )
     val description: String,
+    @param:Schema(
+        description = "Explanation of why this resource matches the search query, formatted in Markdown",
+        example = "Datasettet dekker befolkning og demografi, som matcher spørsmålet om befolkningsstatistikk.",
+    )
+    val rationale: String,
     @param:Schema(
         description = "Type of resource (e.g., 'dataset', 'dataservice')",
         example = "dataset",
@@ -47,7 +50,8 @@ data class LlmSearchHit(
     {
       "id": "12345",
       "title": "Befolkningsstatistikk",
-      "description": "Dette datasettet inneholder statistikk om befolkning og demografi i Norge.",
+      "description": "Statistikk om befolkning og demografi i Norge, inkludert aldersfordeling og geografisk fordeling.",
+      "rationale": "Datasettet dekker befolkning og demografi, som matcher spørsmålet om befolkningsstatistikk.",
       "type": "dataset",
       "publisher": "Statistisk sentralbyrå",
       "publisherId": "991825827"
