@@ -77,6 +77,7 @@ class LlmSearchServiceTest {
                         "publisher" to "Statistisk sentralbyrå",
                         "publisherId" to "1234",
                         "type" to SearchType.DATASET.name,
+                        "description" to "Statistikk over registrerte kjøretøy.",
                     ),
                 ),
                 TextEmbedding(
@@ -114,6 +115,10 @@ class LlmSearchServiceTest {
 
         assertEquals("Statistisk sentralbyrå", result.hits[0].publisher)
         assertEquals("1234", result.hits[0].publisherId)
+        assertEquals("Statistikk over registrerte kjøretøy.", result.hits[0].description)
+        assertEquals("Inneholder informasjon om Tesla-biler.", result.hits[0].rationale)
+        assertEquals("", result.hits[1].description)
+        assertEquals("Inneholder teknisk informasjon om elbiler.", result.hits[1].rationale)
 
         verify {
             searchQueryRepository.saveSearchQuery("Tesla", 3, 3, false)

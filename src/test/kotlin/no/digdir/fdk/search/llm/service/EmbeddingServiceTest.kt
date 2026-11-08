@@ -58,6 +58,7 @@ Dataen er tidsmessig begrenset: 2021-01-01 til 2021-12-31.
                     "title" to "NB Test title",
                     "publisher" to "NB Test publisher > prefLabel",
                     "publisherId" to "Test publisher > identifier",
+                    "description" to "description",
                     "issued" to "2021-01-01",
                 ),
             )
@@ -131,6 +132,7 @@ Alternative navn for konseptet er: NB Alt Label, NB Hidden Label.
                     "title" to "NB Concept Label",
                     "publisher" to "NB Concept Publisher",
                     "publisherId" to "concept-pub-id",
+                    "description" to "NB Concept definition",
                 ),
             )
         }
@@ -172,6 +174,7 @@ Datatjenesten betjener 2 datasett.
                     "title" to "NB DataService Title",
                     "publisher" to "NB DataService Publisher",
                     "publisherId" to "dataservice-pub-id",
+                    "description" to "NB DataService description",
                 ),
             )
         }
@@ -212,6 +215,7 @@ Informasjonsmodellen omhandler emnene: subject1, subject2.
                     "title" to "NB InformationModel Title",
                     "publisher" to "NB InformationModel Publisher",
                     "publisherId" to "infomodel-pub-id",
+                    "description" to "NB InformationModel description",
                 ),
             )
         }
@@ -285,6 +289,7 @@ Nøkkelordene for tjenesten er: keyword1.
                     "title" to "NB Service Title",
                     "publisher" to "NB Catalog Publisher",
                     "publisherId" to "catalog-pub-id",
+                    "description" to "NB Service description",
                 ),
             )
         }
@@ -323,9 +328,22 @@ Hendelsen omhandler emnene: subject1, subject2.
                     "title" to "NB Event Title",
                     "publisher" to "NB Catalog Publisher",
                     "publisherId" to "catalog-pub-id",
+                    "description" to "NB Event description",
                 ),
             )
         }
+    }
+
+    @Test
+    fun `store dataset embedding omits description when the catalog has none`() {
+        val metadata = slot<Map<String, String?>>()
+        every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
+        every { vertexService.embed(any()) } returns Embedding(FloatArray(768))
+        every { embeddingRepository.saveEmbedding(any(), any(), any(), any(), capture(metadata)) } returns true
+
+        embeddingService.storeDatasetEmbedding("12345", TEST_NULL_DATASET, 1L)
+
+        assertEquals(false, metadata.captured.containsKey("description"))
     }
 
     @Test

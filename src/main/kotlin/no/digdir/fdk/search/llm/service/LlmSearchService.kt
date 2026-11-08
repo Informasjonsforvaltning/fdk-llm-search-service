@@ -98,7 +98,8 @@ class LlmSearchService(
                 LlmSearchHit(
                     id = hit.id,
                     title = hit.name,
-                    description = hit.reason,
+                    description = embedding?.metadata?.get("description") ?: "",
+                    rationale = hit.reason,
                     type = embedding?.metadata?.get("type") ?: "",
                     publisher = embedding?.metadata?.get("publisher") ?: "",
                     publisherId = embedding?.metadata?.get("publisherId") ?: "",

@@ -75,6 +75,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                 dataset.title?.valueByPriority(),
                 dataset.publisher?.prefLabel?.valueByPriority(),
                 dataset.publisher?.id,
+                dataset.description?.valueByPriority(),
                 dataset.issued?.let(::parseIssuedDate)?.toString(),
             ),
         )
@@ -114,6 +115,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                 concept.prefLabel?.valueByPriority(),
                 concept.publisher?.prefLabel?.valueByPriority(),
                 concept.publisher?.id,
+                concept.definition?.text?.valueByPriority(),
             ),
         )
     }
@@ -163,6 +165,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                 dataService.title?.valueByPriority(),
                 dataService.publisher?.prefLabel?.valueByPriority(),
                 dataService.publisher?.id,
+                dataService.description?.valueByPriority(),
             ),
         )
     }
@@ -216,6 +219,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                 informationModel.title?.valueByPriority(),
                 informationModel.publisher?.prefLabel?.valueByPriority(),
                 informationModel.publisher?.id,
+                informationModel.description?.valueByPriority(),
             ),
         )
     }
@@ -265,6 +269,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                     ?.prefLabel
                     ?.valueByPriority(),
                 service.catalog?.publisher?.id,
+                service.description?.valueByPriority(),
             ),
         )
     }
@@ -310,6 +315,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
                     ?.prefLabel
                     ?.valueByPriority(),
                 event.catalog?.publisher?.id,
+                event.description?.valueByPriority(),
             ),
         )
     }
@@ -361,12 +367,14 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         title: String?,
         publisherLabel: String?,
         publisherId: String?,
+        description: String? = null,
         issued: String? = null,
     ): Map<String, String?> = buildMap {
         put("type", type.name)
         put("title", title)
         put("publisher", publisherLabel)
         put("publisherId", publisherId)
+        if (!description.isNullOrBlank()) put("description", description)
         if (issued != null) put("issued", issued)
     }
 
