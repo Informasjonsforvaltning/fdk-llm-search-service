@@ -335,15 +335,39 @@ Hendelsen omhandler emnene: subject1, subject2.
     }
 
     @Test
-    fun `store dataset embedding omits description when the catalog has none`() {
-        val metadata = slot<Map<String, String?>>()
+    fun `store embeddings omit a missing or blank catalog description`() {
+        val metadata = mutableListOf<Map<String, String?>>()
         every { embeddingRepository.shouldProcessMessage(any(), any()) } returns true
         every { vertexService.embed(any()) } returns Embedding(FloatArray(768))
         every { embeddingRepository.saveEmbedding(any(), any(), any(), any(), capture(metadata)) } returns true
 
         embeddingService.storeDatasetEmbedding("12345", TEST_NULL_DATASET, 1L)
+        embeddingService.storeDatasetEmbedding(
+            "12345",
+            TEST_DATASET_ALL_FIELDS.copy(description = LocalizedStrings("   ", null, null, null)),
+            1L,
+        )
+        embeddingService.storeConceptEmbedding("concept-123", TEST_CONCEPT_ALL_FIELDS.copy(definition = null), 1L)
+        embeddingService.storeConceptEmbedding(
+            "concept-123",
+            TEST_CONCEPT_ALL_FIELDS.copy(definition = TEST_CONCEPT_ALL_FIELDS.definition?.copy(text = null)),
+            1L,
+        )
+        embeddingService.storeDataServiceEmbedding(
+            "dataservice-123",
+            TEST_DATA_SERVICE_ALL_FIELDS.copy(description = null),
+            1L,
+        )
+        embeddingService.storeInformationModelEmbedding(
+            "infomodel-123",
+            TEST_INFORMATION_MODEL_ALL_FIELDS.copy(description = null),
+            1L,
+        )
+        embeddingService.storeServiceEmbedding("service-123", TEST_SERVICE_ALL_FIELDS.copy(description = null), 1L)
+        embeddingService.storeEventEmbedding("event-123", TEST_EVENT_ALL_FIELDS.copy(description = null), 1L)
 
-        assertEquals(false, metadata.captured.containsKey("description"))
+        assertEquals(8, metadata.size)
+        metadata.forEach { assertEquals(false, it.containsKey("description")) }
     }
 
     @Test

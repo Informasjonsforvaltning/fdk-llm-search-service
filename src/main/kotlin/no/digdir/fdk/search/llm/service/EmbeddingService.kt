@@ -367,7 +367,7 @@ open class EmbeddingService(private val vertexService: VertexService, private va
         title: String?,
         publisherLabel: String?,
         publisherId: String?,
-        description: String? = null,
+        description: String?,
         issued: String? = null,
     ): Map<String, String?> = buildMap {
         put("type", type.name)
