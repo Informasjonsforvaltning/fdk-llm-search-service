@@ -4,4 +4,3 @@ kind: Kustomization
 namespace: staging
 resources:
   - ../base
-  - ingress.yaml
