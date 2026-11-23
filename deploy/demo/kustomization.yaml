@@ -4,4 +4,3 @@ kind: Kustomization
 namespace: demo
 resources:
   - ../base
-  - ingress.yaml
