@@ -143,6 +143,7 @@ class HarvestEventProducer(private val kafkaTemplate: KafkaTemplate<String, Harv
         .setAcceptHeader(null)
         .setChangedResourcesCount(null)
         .setRemovedResourcesCount(null)
+        .setForcedFdkIds(null)
         .build()
 
     private fun sendHarvestEvent(harvestRunId: String?, fdkId: String, eventDescription: String, buildEvent: (String) -> HarvestEvent) {
