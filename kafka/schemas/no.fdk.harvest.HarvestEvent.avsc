@@ -10,6 +10,7 @@
         "name": "HarvestPhase",
         "symbols": [
           "INITIATING",
+          "REMOVING",
           "HARVESTING",
           "REASONING",
           "RDF_PARSING",
@@ -115,6 +116,12 @@
       "type": ["null", "boolean"],
       "default": false,
       "doc": "If true, forces an update even if resources haven't changed (only INITIATING)"
+    },
+    {
+      "name": "forcedFdkIds",
+      "type": ["null", {"type": "array", "items": "string"}],
+      "default": null,
+      "doc": "FDK identifiers of resources to update even if they haven't changed (only INITIATING)"
     }
   ]
 }
